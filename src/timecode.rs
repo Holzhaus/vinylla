@@ -1,5 +1,6 @@
 use crate::{
     bitstream::Bitstream,
+    format::TimecodeFormat,
     util::ExponentialWeightedMovingAverage,
 };
 
@@ -121,5 +122,11 @@ impl Timecode {
         }
 
         None
+    }
+}
+
+impl From<&TimecodeFormat> for Timecode {
+    fn from(format: &TimecodeFormat) -> Self {
+        Timecode::new(format.size, format.seed, format.taps)
     }
 }
