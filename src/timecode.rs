@@ -96,12 +96,18 @@ pub struct Timecode {
 }
 
 impl Timecode {
-    pub fn new(size: usize, seed: u32, taps: u32) -> Self {
-        let bitstream = Bitstream::new(size, seed, taps);
+    pub fn new(format: &TimecodeFormat) -> Self {
+        let TimecodeFormat {
+            size,
+            seed,
+            taps,
+        } = format;
+
+        let bitstream = Bitstream::new(*size, *seed, *taps);
         let primary_channel = TimecodeChannel::new();
         let secondary_channel = TimecodeChannel::new();
 
-        Timecode {
+        Self {
             bitstream,
             primary_channel,
             secondary_channel,
@@ -165,11 +171,5 @@ impl Timecode {
         }
 
         None
-    }
-}
-
-impl From<&TimecodeFormat> for Timecode {
-    fn from(format: &TimecodeFormat) -> Self {
-        Timecode::new(format.size, format.seed, format.taps)
     }
 }
