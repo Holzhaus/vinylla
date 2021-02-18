@@ -9,7 +9,7 @@ license = "LGPL-3.0+"
 readme = "README.md"
 description = "Rust library for working with timecode vinyl/CD audio for DVS systems."
 keywords = ["vinyl", "control", "timecode", "dvs", "scratch"]
-category = [
+categories = [
     "multimedia::audio",
 ]
 
