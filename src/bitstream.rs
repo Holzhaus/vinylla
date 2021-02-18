@@ -91,7 +91,7 @@ impl Bitstream {
 
         self.lookup_table
             .get(&self.bitstream)
-            .and_then(|&x| Some(x))
+            .map(ToOwned::to_owned)
     }
 }
 
