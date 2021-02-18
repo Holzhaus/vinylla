@@ -7,6 +7,7 @@ use std::collections::HashMap;
 ///
 /// The [`Bitstream` struct](Bitstream) uses an n-bit LSFR to populate a lookup table (LUT), which
 /// can then be used to retrieve a position for some n-bit sequence.
+#[derive(Debug)]
 pub struct Bitstream {
     lookup_table: HashMap<u32, u32>,
     size: usize,
@@ -43,12 +44,13 @@ impl Bitstream {
     /// If the positions before and after inserting the bit are not consecutive, the bitstream
     /// is marked as invalid. Processing more bits will let the bitstream become valid again.
     pub fn process_bit(&mut self, bit: u32) {
-        let position_before = self.position();
+        let prev_position = self.position();
         self.bitstream = bits::insert_msb(self.size, self.bitstream, bit);
-        if let Some(a) = position_before {
-            let position_after = self.position();
-            if let Some(b) = position_after {
-                if a + 1 != b {
+        if let Some(prev_position) = prev_position {
+            let next_position = self.position();
+            if let Some(next_position) = next_position {
+                if prev_position + 1 != next_position {
+                    // Discard all previously processed bits
                     self.valid_bits = 0
                 }
             }
@@ -61,22 +63,22 @@ impl Bitstream {
     /// If the positions before and after inserting the bit are not consecutive, the bitstream
     /// is marked as invalid. Processing more bits will let the bitstream become valid again.
     pub fn process_bit_backward(&mut self, bit: u32) {
-        let position_after = self.position();
+        let prev_position = self.position();
         self.bitstream = bits::insert_lsb(self.size, self.bitstream, bit);
-        if let Some(a) = position_after {
-            let position_before = self.position();
-            if let Some(b) = position_before {
-                if b + 1 != a {
+        if let Some(prev_position) = prev_position {
+            let next_position = self.position();
+            if let Some(next_position) = next_position {
+                if prev_position != next_position + 1 {
+                    // Discard all previously processed bits
                     self.valid_bits = 0;
                 }
             }
         }
-
         self.valid_bits += 1;
     }
 
     /// Returns `true` if the position is considered valid.
-    pub fn valid(&self) -> bool {
+    pub fn is_valid(&self) -> bool {
         self.valid_bits >= self.size
     }
 
@@ -84,13 +86,13 @@ impl Bitstream {
     ///
     /// Returns None if the bitstream is considered invalid.
     pub fn position(&self) -> Option<u32> {
-        if !self.valid() {
+        if !self.is_valid() {
             return None;
         }
 
         self.lookup_table
             .get(&self.bitstream)
-            .and_then(|&x| Some(x))
+            .map(ToOwned::to_owned)
     }
 }
 

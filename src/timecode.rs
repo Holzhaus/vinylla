@@ -1,21 +1,18 @@
-use crate::{
-    bitstream::Bitstream,
-    format::TimecodeFormat,
-    util::ExponentialWeightedMovingAverage,
-};
+use crate::{bitstream::Bitstream, format::TimecodeFormat, util::ExponentialWeightedMovingAverage};
 
-#[derive(PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WaveCycleStatus {
     Positive,
     Negative,
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TimecodeDirection {
     Forwards,
     Backwards,
 }
 
+#[derive(Debug)]
 pub struct TimecodeChannel {
     ewma: ExponentialWeightedMovingAverage,
     wave_cycle_status: WaveCycleStatus,
@@ -90,6 +87,7 @@ impl TimecodeChannel {
     }
 }
 
+#[derive(Debug)]
 pub struct Timecode {
     bitstream: Bitstream,
     primary_channel: TimecodeChannel,
@@ -98,12 +96,18 @@ pub struct Timecode {
 }
 
 impl Timecode {
-    pub fn new(size: usize, seed: u32, taps: u32) -> Self {
-        let bitstream = Bitstream::new(size, seed, taps);
+    pub fn new(format: &TimecodeFormat) -> Self {
+        let TimecodeFormat {
+            size,
+            seed,
+            taps,
+        } = format;
+
+        let bitstream = Bitstream::new(*size, *seed, *taps);
         let primary_channel = TimecodeChannel::new();
         let secondary_channel = TimecodeChannel::new();
 
-        Timecode {
+        Self {
             bitstream,
             primary_channel,
             secondary_channel,
@@ -137,13 +141,17 @@ impl Timecode {
         //  ╰(1)╯   ╰───╯   ╰───╯  forwards, otherwise it's playing backwards.
         //
         if primary_crossed_zero {
-            self.direction = if self.primary_channel.wave_cycle_status == self.secondary_channel.wave_cycle_status {
+            self.direction = if self.primary_channel.wave_cycle_status
+                == self.secondary_channel.wave_cycle_status
+            {
                 TimecodeDirection::Forwards
             } else {
                 TimecodeDirection::Backwards
             }
         } else if secondary_crossed_zero {
-            self.direction = if self.primary_channel.wave_cycle_status != self.secondary_channel.wave_cycle_status {
+            self.direction = if self.primary_channel.wave_cycle_status
+                != self.secondary_channel.wave_cycle_status
+            {
                 TimecodeDirection::Forwards
             } else {
                 TimecodeDirection::Backwards
@@ -163,11 +171,5 @@ impl Timecode {
         }
 
         None
-    }
-}
-
-impl From<&TimecodeFormat> for Timecode {
-    fn from(format: &TimecodeFormat) -> Self {
-        Timecode::new(format.size, format.seed, format.taps)
     }
 }

@@ -12,6 +12,7 @@ keywords = ["vinyl", "control", "timecode", "dvs", "scratch"]
 categories = [
     "multimedia::audio",
 ]
+documentation = "https://docs.rs/vinylla/"
 
 [dependencies]
 
