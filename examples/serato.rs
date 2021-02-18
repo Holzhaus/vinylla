@@ -18,7 +18,7 @@ use vinylla::{Timecode, SERATO_CONTROL_CD_1_0_0};
 fn main() {
     let mut args = env::args().skip(1);
     let path = args.next().expect("No file given");
-    let reverse = args.next().map_or(false, |x| { x == "-r" || x == "--reverse" });
+    let reverse = args.next().map_or(false, |x| x == "-r" || x == "--reverse");
     println!("Reverse: {}", reverse);
 
     println!("{}", path);

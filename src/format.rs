@@ -16,5 +16,4 @@ pub const SERATO_CONTROL_CD_1_0_0: TimecodeFormat = TimecodeFormat {
     /// LFSR feedback polynomial:
     /// x^20 + x^18 + x^16 + x^14 + x^12 + x^10 + x^9 + x^6 + x^4 + x^3 + 1
     taps: 0b0011_0100_1101_0101_0101,
-
 };

@@ -1,8 +1,4 @@
-use crate::{
-    bitstream::Bitstream,
-    format::TimecodeFormat,
-    util::ExponentialWeightedMovingAverage,
-};
+use crate::{bitstream::Bitstream, format::TimecodeFormat, util::ExponentialWeightedMovingAverage};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WaveCycleStatus {
@@ -139,13 +135,17 @@ impl Timecode {
         //  ╰(1)╯   ╰───╯   ╰───╯  forwards, otherwise it's playing backwards.
         //
         if primary_crossed_zero {
-            self.direction = if self.primary_channel.wave_cycle_status == self.secondary_channel.wave_cycle_status {
+            self.direction = if self.primary_channel.wave_cycle_status
+                == self.secondary_channel.wave_cycle_status
+            {
                 TimecodeDirection::Forwards
             } else {
                 TimecodeDirection::Backwards
             }
         } else if secondary_crossed_zero {
-            self.direction = if self.primary_channel.wave_cycle_status != self.secondary_channel.wave_cycle_status {
+            self.direction = if self.primary_channel.wave_cycle_status
+                != self.secondary_channel.wave_cycle_status
+            {
                 TimecodeDirection::Forwards
             } else {
                 TimecodeDirection::Backwards
