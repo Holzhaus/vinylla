@@ -10,6 +10,12 @@ pub enum WaveCycleStatus {
     Negative,
 }
 
+#[derive(PartialEq)]
+pub enum TimecodeDirection {
+    Forwards,
+    Backwards,
+}
+
 pub struct TimecodeChannel {
     ewma: ExponentialWeightedMovingAverage,
     wave_cycle_status: WaveCycleStatus,
@@ -88,6 +94,7 @@ pub struct Timecode {
     bitstream: Bitstream,
     primary_channel: TimecodeChannel,
     secondary_channel: TimecodeChannel,
+    direction: TimecodeDirection,
 }
 
 impl Timecode {
@@ -100,6 +107,7 @@ impl Timecode {
             bitstream,
             primary_channel,
             secondary_channel,
+            direction: TimecodeDirection::Forwards,
         }
     }
 
@@ -110,14 +118,47 @@ impl Timecode {
     ) -> Option<(bool, Option<u32>)> {
         let primary_sample = sample_to_i32(primary_sample);
         let secondary_sample = sample_to_i32(secondary_sample);
-        self.primary_channel.process_sample(primary_sample);
+        let primary_crossed_zero = self.primary_channel.process_sample(primary_sample);
         let secondary_crossed_zero = self.secondary_channel.process_sample(secondary_sample);
+
+        // Detect the playback direction of the timecode.
+        //
+        //                         Assuming the primary channel crossed zero:
+        //  ──╮   ╭───╮   ╭(4)╮    If both the primary wave and the secondary
+        //    │  (2)  │   │   │    wave are negative (1) or both are postive
+        //  ─────────────────────  (2), then the timecode is playing forwards,
+        //   (1)  │   │   │   │    otherwise it's playing backwards.
+        //    ╰───╯   ╰(3)╯   ╰──
+        //                         Assuming the secondary channel crossed zero:
+        //  ╮   ╭(2)╮   ╭───╮   ╭  If the primary wave is negative and the
+        //  │   │   │  (3)  │   │  secondary wave is positive (3) or if the
+        //  ─────────────────────  primary wave is positive and the secondary
+        //  │   │   │   │  (4)  │  wave is positive (4), the timecode is playing
+        //  ╰(1)╯   ╰───╯   ╰───╯  forwards, otherwise it's playing backwards.
+        //
+        if primary_crossed_zero {
+            self.direction = if self.primary_channel.wave_cycle_status == self.secondary_channel.wave_cycle_status {
+                TimecodeDirection::Forwards
+            } else {
+                TimecodeDirection::Backwards
+            }
+        } else if secondary_crossed_zero {
+            self.direction = if self.primary_channel.wave_cycle_status != self.secondary_channel.wave_cycle_status {
+                TimecodeDirection::Forwards
+            } else {
+                TimecodeDirection::Backwards
+            }
+        }
 
         if secondary_crossed_zero
             && self.primary_channel.wave_cycle_status == WaveCycleStatus::Positive
         {
             let bit = self.primary_channel.bit_from_sample(primary_sample);
-            self.bitstream.process_bit(bit as u32);
+            if self.direction == TimecodeDirection::Forwards {
+                self.bitstream.process_bit(bit as u32);
+            } else {
+                self.bitstream.process_bit_backward(bit as u32);
+            }
             return Some((bit, self.bitstream.position()));
         }
 
