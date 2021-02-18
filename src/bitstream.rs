@@ -77,7 +77,7 @@ impl Bitstream {
     }
 
     /// Returns `true` if the position is considered valid.
-    pub fn valid(&self) -> bool {
+    pub fn is_valid(&self) -> bool {
         self.valid_bits >= self.size
     }
 
@@ -85,7 +85,7 @@ impl Bitstream {
     ///
     /// Returns None if the bitstream is considered invalid.
     pub fn position(&self) -> Option<u32> {
-        if !self.valid() {
+        if !self.is_valid() {
             return None;
         }
 
