@@ -44,12 +44,13 @@ impl Bitstream {
     /// If the positions before and after inserting the bit are not consecutive, the bitstream
     /// is marked as invalid. Processing more bits will let the bitstream become valid again.
     pub fn process_bit(&mut self, bit: u32) {
-        let position_before = self.position();
+        let prev_position = self.position();
         self.bitstream = bits::insert_msb(self.size, self.bitstream, bit);
-        if let Some(a) = position_before {
-            let position_after = self.position();
-            if let Some(b) = position_after {
-                if a + 1 != b {
+        if let Some(prev_position) = prev_position {
+            let next_position = self.position();
+            if let Some(next_position) = next_position {
+                if prev_position + 1 != next_position {
+                    // Discard all previously processed bits
                     self.valid_bits = 0
                 }
             }
@@ -62,17 +63,17 @@ impl Bitstream {
     /// If the positions before and after inserting the bit are not consecutive, the bitstream
     /// is marked as invalid. Processing more bits will let the bitstream become valid again.
     pub fn process_bit_backward(&mut self, bit: u32) {
-        let position_after = self.position();
+        let prev_position = self.position();
         self.bitstream = bits::insert_lsb(self.size, self.bitstream, bit);
-        if let Some(a) = position_after {
-            let position_before = self.position();
-            if let Some(b) = position_before {
-                if b + 1 != a {
+        if let Some(prev_position) = prev_position {
+            let next_position = self.position();
+            if let Some(next_position) = next_position {
+                if prev_position != next_position + 1 {
+                    // Discard all previously processed bits
                     self.valid_bits = 0;
                 }
             }
         }
-
         self.valid_bits += 1;
     }
 
