@@ -25,13 +25,13 @@
 use super::bits;
 
 /// Fibonacci Linear Feedback Shift Register (LFSR)
-pub struct LFSR {
+pub struct FibonacciLfsr {
     pub size: usize,
     pub state: u32,
     pub taps: u32,
 }
 
-impl LFSR {
+impl FibonacciLfsr {
     /// Return the next LFSR state (without making any changes).
     pub const fn next_state(&self) -> u32 {
         let next_bit = (self.state & self.taps).count_ones() & 1;
@@ -60,10 +60,10 @@ impl LFSR {
 
 #[cfg(test)]
 mod tests {
-    use super::LFSR;
+    use super::FibonacciLfsr;
 
     fn find_lfsr_period(size: usize, seed: u32, taps: u32) -> Option<usize> {
-        let mut lfsr = LFSR {
+        let mut lfsr = FibonacciLfsr {
             size,
             state: seed,
             taps,
@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_lfsr_advance_and_revert() {
-        let mut lfsr = LFSR {
+        let mut lfsr = FibonacciLfsr {
             state: 0b10101,
             size: 5,
             taps: 0b00101,

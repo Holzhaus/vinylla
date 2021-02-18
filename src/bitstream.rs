@@ -1,6 +1,6 @@
 //! The [`Bitstream` struct](Bitstream) processes bits and maps them to positions.
 
-use crate::{bits, lfsr::LFSR};
+use crate::{bits, lfsr::FibonacciLfsr};
 use std::collections::HashMap;
 
 /// Maps a bitstream to a position in the underlying lookup table.
@@ -20,7 +20,7 @@ impl Bitstream {
     pub fn new(size: usize, seed: u32, taps: u32) -> Self {
         // Precompute lookup table
         let capacity = 2u32.pow(size as u32) - 1;
-        let mut lfsr = LFSR {
+        let mut lfsr = FibonacciLfsr {
             size,
             state: seed,
             taps,

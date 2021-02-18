@@ -97,11 +97,7 @@ pub struct Timecode {
 
 impl Timecode {
     pub fn new(format: &TimecodeFormat) -> Self {
-        let TimecodeFormat {
-            size,
-            seed,
-            taps,
-        } = format;
+        let TimecodeFormat { size, seed, taps } = format;
 
         let bitstream = Bitstream::new(*size, *seed, *taps);
         let primary_channel = TimecodeChannel::new();
