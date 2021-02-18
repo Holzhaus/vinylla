@@ -158,6 +158,21 @@ impl Timecode {
             }
         }
 
+        // Read a bit from the timecode.
+        //
+        //    "1"             "1"     Bits encoded by peaks in the positive wave
+        //   ╭───╮    "0"    ╭───╮    of the primary channel. Peaks with a
+        //   │   │   ╭───╮   │   │    higher amplitude represent a "1" (1, 3),
+        // ───(1)─────(2)─────(3)───  peaks with a lower amplitude represent
+        //   │   ╰───╯   │   │   │    a "0" (2).
+        // ──╯           ╰───╯   ╰──
+        //                            The easiest way to detect *when* to read
+        // ╭───╮           ╭───╮   ╭  peak is by looking at the secondary
+        // │   │   ╭───╮   │   │   │  channel's wave. Whenever that wave
+        // ───(1)─────(2)─────(3)───  crosses zero and the primary wave is
+        // │   ╰───╯   │   │   │   │  positive,the primary channel is on a peak
+        // ╯           ╰───╯   ╰───╯  that should be interpreted as a bit.
+        //
         if secondary_crossed_zero
             && self.primary_channel.wave_cycle_status == WaveCycleStatus::Positive
         {
