@@ -4,18 +4,19 @@ use crate::{
     util::ExponentialWeightedMovingAverage,
 };
 
-#[derive(PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WaveCycleStatus {
     Positive,
     Negative,
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TimecodeDirection {
     Forwards,
     Backwards,
 }
 
+#[derive(Debug)]
 pub struct TimecodeChannel {
     ewma: ExponentialWeightedMovingAverage,
     wave_cycle_status: WaveCycleStatus,
@@ -90,6 +91,7 @@ impl TimecodeChannel {
     }
 }
 
+#[derive(Debug)]
 pub struct Timecode {
     bitstream: Bitstream,
     primary_channel: TimecodeChannel,

@@ -1,3 +1,4 @@
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TimecodeFormat {
     pub size: usize,
     pub seed: u32,

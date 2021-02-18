@@ -2,6 +2,7 @@
 
 /// Discrete-time implementation of a simple RC low-pass filter to calculate the exponential
 /// weighted moving average.
+#[derive(Debug, Clone, PartialEq)]
 pub struct ExponentialWeightedMovingAverage {
     /// The smoothed last output.
     pub last_output: i32,

@@ -70,7 +70,7 @@ mod tests {
             taps,
         };
         let mut period: usize = 0;
-        let mut last_state = lfsr.state;
+        let last_state = lfsr.state;
         while period < usize::MAX {
             let state = lfsr.advance();
             period += 1;

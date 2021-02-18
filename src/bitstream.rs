@@ -7,6 +7,7 @@ use std::collections::HashMap;
 ///
 /// The [`Bitstream` struct](Bitstream) uses an n-bit LSFR to populate a lookup table (LUT), which
 /// can then be used to retrieve a position for some n-bit sequence.
+#[derive(Debug)]
 pub struct Bitstream {
     lookup_table: HashMap<u32, u32>,
     size: usize,
