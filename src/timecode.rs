@@ -129,7 +129,7 @@ impl Timecode {
         //
         //                         Assuming the primary channel crossed zero:
         //  ──╮   ╭───╮   ╭(4)╮    If both the primary wave and the secondary
-        //    │  (2)  │   │   │    wave are negative (1) or both are postive
+        //    │  (2)  │   │   │    wave are negative (1) or both are positive
         //  ─────────────────────  (2), then the timecode is playing forwards,
         //   (1)  │   │   │   │    otherwise it's playing backwards.
         //    ╰───╯   ╰(3)╯   ╰──

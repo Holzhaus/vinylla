@@ -16,9 +16,8 @@
 //! ```
 //!
 //! The example above depicts an 8-bit LFSR with the feedback polynomial x⁸ + x⁶ + x⁵ + x⁴ + 1.
-//!
 //! When writing the LFSR state as vector of bits a = (a₇, a₆, a₅, a₄, a₃, a₂, a₁, a₀), the binary
-//! `taps` represenation of that LFSR is 00011101₂, i.e. every bit that influences the input is 1,
+//! `taps` representation of that LFSR is 00011101₂, i.e. every bit that influences the input is 1,
 //! all other bits are 0.
 //!
 //! The feedback bit can be calculated as:
