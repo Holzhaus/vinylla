@@ -18,3 +18,4 @@ documentation = "https://docs.rs/vinylla/"
 
 [dev-dependencies]
 hound = "3.4"
+sdl2 = "0.34"
