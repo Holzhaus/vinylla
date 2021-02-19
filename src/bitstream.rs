@@ -1,4 +1,5 @@
-//! The [`Bitstream` struct](Bitstream) processes bits and maps them to positions.
+//! The [`Bitstream` struct](Bitstream) processes bits and maps them to positions within the
+//! periodic output stream of a [LFSR](crate::lfsr).
 
 use crate::{bits, lfsr::FibonacciLfsr};
 use std::collections::HashMap;
