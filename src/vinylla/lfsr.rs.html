@@ -313,7 +313,6 @@
 <span id="310">310</span>
 <span id="311">311</span>
 <span id="312">312</span>
-<span id="313">313</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implementation of a Fibonacci Linear Feedback Shift Register (LFSR).</span>
 <span class="doccomment">//!</span>
@@ -323,15 +322,14 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Description</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! *Note: Let a = n. We use a instead of n here because there is no subscript n in Unicode).*</span>
+<span class="doccomment">//! *Note: Let a = n. We use a instead of n here because there is no subscript n in Unicode). Also,</span>
+<span class="doccomment">//! this generic description may look complicated and daunting, but keep reading. There&#39;s an</span>
+<span class="doccomment">//! example below that will make it clearer.*</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! An LFSR can be described by the register&#39;s bit length (a) and the bit positions that influence</span>
 <span class="doccomment">//! the next feedback bit. These bit positions are called &quot;taps&quot; and can be written as vector p =</span>
 <span class="doccomment">//! (pₐ₋₁, ..., p₃, p₂, p₁, p₀) where each element can either be 0 or 1 (mathematically speaking: ∀</span>
 <span class="doccomment">//! x ∈ ℕ: pₓ ∈ {0, 1}).</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! That generic description may look complicated and daunting, but keep reading. There&#39;s and</span>
-<span class="doccomment">//! example below that will make it clearer.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```text</span>
 <span class="doccomment">//!      MSB                                    LSB</span>
@@ -354,8 +352,8 @@
 <span class="doccomment">//! sₐ ≡ pₐ₋₁ × sₐ₋₁ + ... + p₃ × s₃ + p₂ × s₂ + p₁ × s₁ + p₁ × s₁ + p₀ × s₀ mod 2</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! It&#39;s important that the taps `p` are a property of the LFSR that doesn&#39;t change, so the</span>
-<span class="doccomment">//! next feedback bit is calculated as:</span>
+<span class="doccomment">//! It&#39;s important that the taps `p` are a property of the LFSR. That property doesn&#39;t change, so</span>
+<span class="doccomment">//! the next feedback bit is calculated like this:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```text</span>
 <span class="doccomment">//! sₐ₊₁ ≡ pₐ₋₁ × sₐ + ... + p₃ × s₄ + p₂ × s₃ + p₁ × s₂ + p₁ × s₂ + p₀ × s₁ mod 2</span>
