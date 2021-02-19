@@ -187,6 +187,13 @@
 <span id="184">184</span>
 <span id="185">185</span>
 <span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">bitstream</span>::<span class="ident">Bitstream</span>, <span class="ident">format</span>::<span class="ident">TimecodeFormat</span>, <span class="ident">util</span>::<span class="ident">ExponentialWeightedMovingAverage</span>};
 
@@ -345,19 +352,26 @@
         }
 
         <span class="comment">// Read a bit from the timecode.</span>
+        <span class="comment">// The timecode waveform has a constant frequency with a variable</span>
+        <span class="comment">// amplitude. The variations in the amplitude encode the binary data</span>
+        <span class="comment">// stream. The primary channel&#39;s amplitude is read as a bit when</span>
+        <span class="comment">// the secondary channel&#39;s waveform crosses 0 and the primary</span>
+        <span class="comment">// channel&#39;s waveform is positive. Peaks with a larger amplitude</span>
+        <span class="comment">// are bit 1 (diagram positions 1 and 3) and peaks with a lower</span>
+        <span class="comment">// amplitude are bit 0 (diagram position 2).</span>
         <span class="comment">//</span>
-        <span class="comment">//    &quot;1&quot;             &quot;1&quot;     Bits encoded by peaks in the positive wave</span>
-        <span class="comment">//   ╭───╮    &quot;0&quot;    ╭───╮    of the primary channel. Peaks with a</span>
-        <span class="comment">//   │   │   ╭───╮   │   │    higher amplitude represent a &quot;1&quot; (1, 3),</span>
-        <span class="comment">// ───(1)─────(2)─────(3)───  peaks with a lower amplitude represent</span>
-        <span class="comment">//   │   ╰───╯   │   │   │    a &quot;0&quot; (2).</span>
+        <span class="comment">//    &quot;1&quot;             &quot;1&quot;</span>
+        <span class="comment">//   ╭───╮    &quot;0&quot;    ╭───╮</span>
+        <span class="comment">//   │   │   ╭───╮   │   │</span>
+        <span class="comment">// ───(1)─────(2)─────(3)───  primary channel</span>
+        <span class="comment">//   │   ╰───╯   │   │   │</span>
         <span class="comment">// ──╯           ╰───╯   ╰──</span>
-        <span class="comment">//                            The easiest way to detect *when* to read</span>
-        <span class="comment">// ╭───╮           ╭───╮   ╭  peak is by looking at the secondary</span>
-        <span class="comment">// │   │   ╭───╮   │   │   │  channel&#39;s wave. Whenever that wave</span>
-        <span class="comment">// ───(1)─────(2)─────(3)───  crosses zero and the primary wave is</span>
-        <span class="comment">// │   ╰───╯   │   │   │   │  positive,the primary channel is on a peak</span>
-        <span class="comment">// ╯           ╰───╯   ╰───╯  that should be interpreted as a bit.</span>
+        <span class="comment">//</span>
+        <span class="comment">// ╭───╮           ╭───╮   ╭</span>
+        <span class="comment">// │   │   ╭───╮   │   │   │</span>
+        <span class="comment">// ───(1)─────(2)─────(3)───  secondary channel</span>
+        <span class="comment">// │   ╰───╯   │   │   │   │</span>
+        <span class="comment">// ╯           ╰───╯   ╰───╯</span>
         <span class="comment">//</span>
         <span class="kw">if</span> <span class="ident">secondary_crossed_zero</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">primary_channel</span>.<span class="ident">wave_cycle_status</span> <span class="op">=</span><span class="op">=</span> <span class="ident">WaveCycleStatus</span>::<span class="ident">Positive</span>
