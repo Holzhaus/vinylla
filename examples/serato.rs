@@ -39,8 +39,14 @@ fn main() {
             position += 2;
         }
         let mut samples = reader.samples::<i16>().map(|x| x.unwrap());
-        let left = samples.next().expect("failed to read left sample");
-        let right = samples.next().expect("failed to read right sample");
+        let left = match samples.next() {
+            None => return,
+            Some(s) => s,
+        };
+        let right = match samples.next() {
+            None => return,
+            Some(s) => s,
+        };
         if let Some((bit, position)) = timecode.process_channels(left, right) {
             println!("{:10}: Bit {} => Position {:?}", i, bit as u8, position);
             i += 1;
