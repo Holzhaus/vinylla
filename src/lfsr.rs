@@ -6,15 +6,14 @@
 //!
 //! # Description
 //!
-//! *Note: Let a = n. We use a instead of n here because there is no subscript n in Unicode).*
+//! *Note: Let a = n. We use a instead of n here because there is no subscript n in Unicode). Also,
+//! this generic description may look complicated and daunting, but keep reading. There's an
+//! example below that will make it clearer.*
 //!
 //! An LFSR can be described by the register's bit length (a) and the bit positions that influence
 //! the next feedback bit. These bit positions are called "taps" and can be written as vector p =
 //! (pₐ₋₁, ..., p₃, p₂, p₁, p₀) where each element can either be 0 or 1 (mathematically speaking: ∀
 //! x ∈ ℕ: pₓ ∈ {0, 1}).
-//!
-//! That generic description may look complicated and daunting, but keep reading. There's and
-//! example below that will make it clearer.
 //!
 //! ```text
 //!      MSB                                    LSB
@@ -37,8 +36,8 @@
 //! sₐ ≡ pₐ₋₁ × sₐ₋₁ + ... + p₃ × s₃ + p₂ × s₂ + p₁ × s₁ + p₁ × s₁ + p₀ × s₀ mod 2
 //! ```
 //!
-//! It's important that the taps `p` are a property of the LFSR that doesn't change, so the
-//! next feedback bit is calculated as:
+//! It's important that the taps `p` are a property of the LFSR. That property doesn't change, so
+//! the next feedback bit is calculated like this:
 //!
 //! ```text
 //! sₐ₊₁ ≡ pₐ₋₁ × sₐ + ... + p₃ × s₄ + p₂ × s₃ + p₁ × s₂ + p₁ × s₂ + p₀ × s₁ mod 2
