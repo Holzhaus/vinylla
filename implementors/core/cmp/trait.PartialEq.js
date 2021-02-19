@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["vinylla"] = [{"text":"impl PartialEq&lt;TimecodeFormat&gt; for TimecodeFormat","synthetic":false,"types":[]},{"text":"impl PartialEq&lt;WaveCycleStatus&gt; for WaveCycleStatus","synthetic":false,"types":[]},{"text":"impl PartialEq&lt;TimecodeDirection&gt; for TimecodeDirection","synthetic":false,"types":[]},{"text":"impl PartialEq&lt;ExponentialWeightedMovingAverage&gt; for ExponentialWeightedMovingAverage","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

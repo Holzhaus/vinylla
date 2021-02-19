@@ -1,0 +1,111 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `lfsr` mod in crate `vinylla`."><meta name="keywords" content="rust, rustlang, rust-lang, lfsr"><title>vinylla::lfsr - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../vinylla/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a><p class="location">Module lfsr</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#structs">Structs</a></li></ul></div><p class="location"><a href="../index.html">vinylla</a></p><script>window.sidebarCurrent = {name: "lfsr", ty: "mod", relpath: "../"};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../../src/vinylla/lfsr.rs.html#1-313" title="goto source code">[src]</a></span><span class="in-band">Module <a href="../index.html">vinylla</a>::<wbr><a class="mod" href="">lfsr</a></span></h1><div class="docblock"><p>Implementation of a Fibonacci Linear Feedback Shift Register (LFSR).</p>
+<p>An n-bit LFSR generates a bitstream from an n-bit state. For each cycle, the bits at certain
+positions of the current state are XOR'ed and the result is fed back into the register. The
+rightmost bit of the state that is &quot;pushed out&quot; of the register is the output bit.</p>
+<h1 id="description" class="section-header"><a href="#description">Description</a></h1>
+<p><em>Note: Let a = n. We use a instead of n here because there is no subscript n in Unicode).</em></p>
+<p>An LFSR can be described by the register's bit length (a) and the bit positions that influence
+the next feedback bit. These bit positions are called &quot;taps&quot; and can be written as vector p =
+(pₐ₋₁, ..., p₃, p₂, p₁, p₀) where each element can either be 0 or 1 (mathematically speaking: ∀
+x ∈ ℕ: pₓ ∈ {0, 1}).</p>
+<p>That generic description may look complicated and daunting, but keep reading. There's and
+example below that will make it clearer.</p>
+<pre><code class="language-text">     MSB                                    LSB
+    ┌─────┐           ┌───┐  ┌───┐  ┌───┐  ┌───┐
+┌──▶│ sₐ₋₁├┬──▶ ... ─▶│ s₃├┬▶│ s₂├┬▶│ s₁├┬▶│ s₀├┬───▶ output bit
+│   └─────┘│          └───┘│ └───┘│ └───┘│ └───┘│
+│          ▼               ▼      ▼      ▼      ▼
+│sₐ        ⊗ ◀─pₐ₋₁        ⊗ ◀─p₃ ⊗ ◀─p₂ ⊗ ◀─p₁ ⊗ ◀─p₀
+│          │               │      │      │      │
+│          ▼               ▼      ▼      ▼      │
+└─────────╴⊕ ◀─ ... ◀──────⊕ ◀────⊕ ◀────⊕ ◀────┘
+</code></pre>
+<p>The LFSR state is a-bit vector s = (sₐ₋₁, ..., s₃, s₂, s₁, s₀).</p>
+<p>After the first clock cycle, the internal state is shifted, such that s = (sₐ, ..., s₄, s₃, s₂,
+s₁) and s₀ becomes the output bit. The feedback bit can be calculated as:</p>
+<pre><code class="language-text">sₐ ≡ pₐ₋₁ × sₐ₋₁ + ... + p₃ × s₃ + p₂ × s₂ + p₁ × s₁ + p₁ × s₁ + p₀ × s₀ mod 2
+</code></pre>
+<p>It's important that the taps <code>p</code> are a property of the LFSR that doesn't change, so the
+next feedback bit is calculated as:</p>
+<pre><code class="language-text">sₐ₊₁ ≡ pₐ₋₁ × sₐ + ... + p₃ × s₄ + p₂ × s₃ + p₁ × s₂ + p₁ × s₂ + p₀ × s₁ mod 2
+</code></pre>
+<h1 id="example" class="section-header"><a href="#example">Example</a></h1>
+<p>Let's consider an 8-bit LFSR with taps p = (0, 0, 0, 1, 1, 1, 0, 1). This information
+suffices to draw it as:</p>
+<pre><code class="language-text">     MSB                                              LSB
+    ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐
+┌──▶│ s₇├─▶│ s₆├─▶│ s₅├─▶│ s₄├┬▶│ s₃├┬▶│ s₂├┬▶│ s₁├─▶│ s₀├┬───▶ output bit
+│   └───┘  └───┘  └───┘  └───┘│ └───┘│ └───┘│ └───┘  └───┘│
+│s₈                           │      │      │             │
+│                             ▼      ▼      ▼             │
+└─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘
+</code></pre>
+<p>We can now calculate the output bit as:</p>
+<pre><code class="language-text">s₈ ≡ p₇ × s₇ + p₆ × s₆ + p₅ × s₅ + p₄ × s₄ + p₃ × s₃ + p₂ × s₂ + p₁ × s₁ + p₀ × s₀ mod 2
+   ≡  0 × s₇ +  0 × s₆ +  0 × s₅ +  1 × s₄ +  1 × s₃ + 1  × s₂ +  0 × s₁ +  1 × s₀ mod 2
+   ≡                                    s₄ +      s₃ +      s₂           +      s₀ mod 2
+   ≡ s₄ ⊕ s₃ ⊕ s₂ ⊕  s₀
+</code></pre>
+<p>Let the initial state s = (1, 1, 0, 0, 1, 0, 0, 1).</p>
+<pre><code class="language-text">     MSB                                              LSB
+      s₇     s₆     s₅     s₄     s₃     s₂     s₁     s₀
+    ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐
+┌──▶│ 1 ├─▶│ 1 ├─▶│ 0 ├─▶│ 0 ├┬▶│ 1 ├┬▶│ 0 ├┬▶│ 0 ├─▶│ 1 ├┬───▶ s₀
+│   └───┘  └───┘  └───┘  └───┘│ └───┘│ └───┘│ └───┘  └───┘│
+│s₈                           │      │      │             │
+│                             ▼      ▼      ▼             │
+└─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘
+</code></pre>
+<p>The first clock cycle now shifts the register to the right using feedback bit s₈.
+That bit can be calculated using the equation above:</p>
+<pre><code class="language-text">s₈ ≡ s₄ ⊕ s₃ ⊕ s₂ ⊕  s₀
+   ≡ 0 ⊕ 1 ⊕ 0 ⊕  1
+   ≡ 0
+</code></pre>
+<p>The output bit is the bit that gets &quot;pushed out&quot; of the register, i.e. s₀ = 0.</p>
+<p>After the first clock the LFSR has state s = (0, 1, 1, 0, 0, 1, 0, 0) and looks like this:</p>
+<pre><code class="language-text">     MSB                                              LSB
+      s₈     s₇     s₆     s₅     s₄     s₃     s₂     s₁
+    ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐
+┌──▶│ 0 ├─▶│ 1 ├─▶│ 1 ├─▶│ 0 ├┬▶│ 0 ├┬▶│ 1 ├┬▶│ 0 ├─▶│ 0 ├┬───▶ s₁
+│   └───┘  └───┘  └───┘  └───┘│ └───┘│ └───┘│ └───┘  └───┘│
+│s₉                           │      │      │             │
+│                             ▼      ▼      ▼             │
+└─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘
+</code></pre>
+<p>For the second clock cycle, the output bit is s₁ = 0 and we can calculate the feedback bit s₉ as:</p>
+<pre><code class="language-text">s₉ ≡ s₅ ⊕ s₄ ⊕ s₃ ⊕  s₁
+   ≡ 0 ⊕ 0 ⊕ 1 ⊕  0
+   ≡ 1
+</code></pre>
+<p>After the second clock the LFSR has state s = (1, 0, 1, 1, 0, 0, 1, 0) and looks like this:</p>
+<pre><code class="language-text">     MSB                                              LSB
+      s₉     s₈     s₇     s₆     s₅     s₄     s₃     s₂
+    ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐
+┌──▶│ 1 ├─▶│ 0 ├─▶│ 1 ├─▶│ 1 ├┬▶│ 0 ├┬▶│ 0 ├┬▶│ 1 ├─▶│ 0 ├┬───▶ s₂
+│   └───┘  └───┘  └───┘  └───┘│ └───┘│ └───┘│ └───┘  └───┘│
+│s₁₀                          │      │      │             │
+│                             ▼      ▼      ▼             │
+└─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘
+</code></pre>
+<h2 id="feedback-polynomial" class="section-header"><a href="#feedback-polynomial">Feedback Polynomial</a></h2>
+<p>Mathematicians love polynomials, so instead of using the size and the taps to describe an LFSR,
+they often use a polynomial:</p>
+<pre><code class="language-text">P(x) = p₀ × xᵃ + p₁ × xᵃ⁻¹ + p₂ × xᵃ⁻² + ... + pₐ₋₁  × x¹ + x⁰
+</code></pre>
+<p>So for the 8-bit LFSR in the example, we had these taps:</p>
+<pre><code class="language-text">p = (p₇, p₆, p₅, p₄, p₃, p₂, p₁, p₀)
+  = (0,  0,  0,  1,  1,  1,  0,  1)
+</code></pre>
+<p>Therefore, the feedback polynomial of that LFSR is:</p>
+<pre><code class="language-text">P(x) = p₀ × x⁸ + p₁ × x⁷ + p₂ × x⁶ + p₃ × x⁵ + p₄ × x⁴ + p₅ × x³ + p₆ × x² + p₇ × x¹ + x⁰
+     =  1 × x⁸ +  0 × x⁷ +  1 × x⁶ +  1 × x⁵ +  1 × x⁴ +  0 × x³ +  0 × x² +  0 × x¹ + x⁰
+     =      x⁸ +                x⁶ +      x⁵ +      x⁴ +                               x⁰
+     = x⁸ + x⁶ + x⁵ + x⁴ + 1
+</code></pre>
+</div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<table><tr class="module-item"><td><a class="struct" href="struct.FibonacciLfsr.html" title="vinylla::lfsr::FibonacciLfsr struct">FibonacciLfsr</a></td><td class="docblock-short"><p>Fibonacci Linear Feedback Shift Register (LFSR)</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "vinylla";</script><script src="../../main.js"></script><script defer src="../../search-index.js"></script></body></html>

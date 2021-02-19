@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ExponentialWeightedMovingAverage","Discrete-time implementation of a simple RC low-pass filter to calculate the exponential weighted moving average."]]});
