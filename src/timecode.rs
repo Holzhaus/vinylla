@@ -1,3 +1,52 @@
+//! Timecode takes a stream of stereo PCM audio from a timecode vinyl record or CD and decodes
+//! the position and playback direction. The timecode audio signal is a constant frequency.
+//! The stereo channels carry the same signal out of phase by a quarter waveform period.
+//! The direction is detected by comparing the polarity of the channels after either of them
+//! cross 0:
+//!
+//! ```text
+//!                         Assuming the primary channel crossed zero:
+//!  ──╮   ╭───╮   ╭(4)╮    If both the primary wave and the secondary
+//!    │  (2)  │   │   │    wave are negative (1) or both are positive
+//!  ─────────────────────  (2), then the timecode is playing forwards,
+//!   (1)  │   │   │   │    otherwise it's playing backwards.
+//!    ╰───╯   ╰(3)╯   ╰──
+//!                         Assuming the secondary channel crossed zero:
+//!  ╮   ╭(2)╮   ╭───╮   ╭  If the primary wave is negative and the
+//!  │   │   │  (3)  │   │  secondary wave is positive (3) or if the
+//!  ─────────────────────  primary wave is positive and the secondary
+//!  │   │   │   │  (4)  │  wave is positive (4), the timecode is playing
+//!  ╰(1)╯   ╰───╯   ╰───╯  forwards, otherwise it's playing backwards.
+//! ```
+//!
+//! While the frequency is constant, the amplitude varies. The variations in amplitude encode
+//! a binary data stream. The primary channel's amplitude is read as a bit when the secondary
+//! channel's waveform crosses 0 and the primary channel's waveform is positive. Peaks with a
+//! larger amplitude are bit 1 (diagram positions 1 and 3) and peaks with a lower amplitude are
+//! bit 0 (diagram position 2).
+//!
+//! ```text
+//!    "1"             "1"
+//!   ╭───╮    "0"    ╭───╮
+//!   │   │   ╭───╮   │   │
+//! ───(1)─────(2)─────(3)───  primary channel
+//!   │   ╰───╯   │   │   │
+//! ──╯           ╰───╯   ╰──
+//!
+//! ╭───╮           ╭───╮   ╭
+//! │   │   ╭───╮   │   │   │
+//! ───(1)─────(2)─────(3)───  secondary channel
+//! │   ╰───╯   │   │   │   │
+//! ╯           ╰───╯   ╰───╯
+//!
+//! ```
+//!
+//! The binary [bitstream](crate::bitstream) is the output of an [LFSR](crate::lfsr), allowing
+//! a short sequence of bits anywhere in the bitstream to identify a unique position without
+//! a need for word boundaries.
+//!
+//! TODO: implement detection of playback speed
+//!
 use crate::{bitstream::Bitstream, format::TimecodeFormat, util::ExponentialWeightedMovingAverage};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -121,21 +170,7 @@ impl Timecode {
         let primary_crossed_zero = self.primary_channel.process_sample(primary_sample);
         let secondary_crossed_zero = self.secondary_channel.process_sample(secondary_sample);
 
-        // Detect the playback direction of the timecode.
-        //
-        //                         Assuming the primary channel crossed zero:
-        //  ──╮   ╭───╮   ╭(4)╮    If both the primary wave and the secondary
-        //    │  (2)  │   │   │    wave are negative (1) or both are positive
-        //  ─────────────────────  (2), then the timecode is playing forwards,
-        //   (1)  │   │   │   │    otherwise it's playing backwards.
-        //    ╰───╯   ╰(3)╯   ╰──
-        //                         Assuming the secondary channel crossed zero:
-        //  ╮   ╭(2)╮   ╭───╮   ╭  If the primary wave is negative and the
-        //  │   │   │  (3)  │   │  secondary wave is positive (3) or if the
-        //  ─────────────────────  primary wave is positive and the secondary
-        //  │   │   │   │  (4)  │  wave is positive (4), the timecode is playing
-        //  ╰(1)╯   ╰───╯   ╰───╯  forwards, otherwise it's playing backwards.
-        //
+        // detect playback direction
         if primary_crossed_zero {
             self.direction = if self.primary_channel.wave_cycle_status
                 == self.secondary_channel.wave_cycle_status
@@ -154,28 +189,7 @@ impl Timecode {
             }
         }
 
-        // Read a bit from the timecode.
-        // The timecode waveform has a constant frequency with a variable
-        // amplitude. The variations in the amplitude encode the binary data
-        // stream. The primary channel's amplitude is read as a bit when
-        // the secondary channel's waveform crosses 0 and the primary
-        // channel's waveform is positive. Peaks with a larger amplitude
-        // are bit 1 (diagram positions 1 and 3) and peaks with a lower
-        // amplitude are bit 0 (diagram position 2).
-        //
-        //    "1"             "1"
-        //   ╭───╮    "0"    ╭───╮
-        //   │   │   ╭───╮   │   │
-        // ───(1)─────(2)─────(3)───  primary channel
-        //   │   ╰───╯   │   │   │
-        // ──╯           ╰───╯   ╰──
-        //
-        // ╭───╮           ╭───╮   ╭
-        // │   │   ╭───╮   │   │   │
-        // ───(1)─────(2)─────(3)───  secondary channel
-        // │   ╰───╯   │   │   │   │
-        // ╯           ╰───╯   ╰───╯
-        //
+        // Read a bit from the timecode and detect position within the timecode signal
         if secondary_crossed_zero
             && self.primary_channel.wave_cycle_status == WaveCycleStatus::Positive
         {
