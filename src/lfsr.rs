@@ -17,7 +17,7 @@
 //! example below that will make it clearer.
 //!
 //! ```text
-//!      MSB                                              LSB
+//!      MSB                                    LSB
 //!     ┌─────┐           ┌───┐  ┌───┐  ┌───┐  ┌───┐
 //! ┌──▶│ sₐ₋₁├┬──▶ ... ─▶│ s₃├┬▶│ s₂├┬▶│ s₁├┬▶│ s₀├┬───▶ output bit
 //! │   └─────┘│          └───┘│ └───┘│ └───┘│ └───┘│
