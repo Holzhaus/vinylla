@@ -4,24 +4,153 @@
 //! positions of the current state are XOR'ed and the result is fed back into the register. The
 //! rightmost bit of the state that is "pushed out" of the register is the output bit.
 //!
+//! # Description
+//!
+//! *Note: Let a = n. We use a instead of n here because there is no subscript n in Unicode).*
+//!
+//! An LFSR can be described by the register's bit length (a) and the bit positions that influence
+//! the next feedback bit. These bit positions are called "taps" and can be written as vector p =
+//! (pₐ₋₁, ..., p₃, p₂, p₁, p₀) where each element can either be 0 or 1 (mathematically speaking: ∀
+//! x ∈ ℕ: pₓ ∈ {0, 1}).
+//!
+//! That generic description may look complicated and daunting, but keep reading. There's and
+//! example below that will make it clearer.
+//!
 //! ```text
-//!       MSB                         LSB
-//!      ┌───┬───┬───┬───┬───┬───┬───┬───┐
-//! ┌──▶ │ a₇│ a₆│ a₅│ a₄│ a₃│ a₂│ a₁│ a₀│ ───▶ b (output bit)
-//! │    └───┴───┴───┴─┬─┴─┬─┴─┬─┴───┴─┬─┘
-//! │                  │   │   │       │
-//! │                  ▼   ▼   ▼       │
-//! └─────────────────╴⊕ ◀╴⊕ ◀╴⊕ ◀─────┘
-//!     c (feedback bit)
+//!      MSB                                              LSB
+//!     ┌─────┐           ┌───┐  ┌───┐  ┌───┐  ┌───┐
+//! ┌──▶│ sₐ₋₁├┬──▶ ... ─▶│ s₃├┬▶│ s₂├┬▶│ s₁├┬▶│ s₀├┬───▶ output bit
+//! │   └─────┘│          └───┘│ └───┘│ └───┘│ └───┘│
+//! │          ▼               ▼      ▼      ▼      ▼
+//! │sₐ        ⊗ ◀─pₐ₋₁        ⊗ ◀─p₃ ⊗ ◀─p₂ ⊗ ◀─p₁ ⊗ ◀─p₀
+//! │          │               │      │      │      │
+//! │          ▼               ▼      ▼      ▼      │
+//! └─────────╴⊕ ◀─ ... ◀──────⊕ ◀────⊕ ◀────⊕ ◀────┘
 //! ```
 //!
-//! The example above depicts an 8-bit LFSR with the feedback polynomial x⁸ + x⁶ + x⁵ + x⁴ + 1.
-//! When writing the LFSR state as vector of bits a = (a₇, a₆, a₅, a₄, a₃, a₂, a₁, a₀), the binary
-//! `taps` representation of that LFSR is 00011101₂, i.e. every bit that influences the input is 1,
-//! all other bits are 0.
+//! The LFSR state is a-bit vector s = (sₐ₋₁, ..., s₃, s₂, s₁, s₀).
 //!
-//! The feedback bit can be calculated as:
-//! c = 0⋅a₇ + 0⋅a₆ + 0⋅a₅ + 1⋅a₄ + 1⋅a₃ + 1⋅a₂ + 0⋅a₁ + 1⋅a₀ mod 2 = a₀ ⊕ a₂⊕ a₃ ⊕ a₄
+//! After the first clock cycle, the internal state is shifted, such that s = (sₐ, ..., s₄, s₃, s₂,
+//! s₁) and s₀ becomes the output bit. The feedback bit can be calculated as:
+//!
+//! ```text
+//! sₐ ≡ pₐ₋₁ × sₐ₋₁ + ... + p₃ × s₃ + p₂ × s₂ + p₁ × s₁ + p₁ × s₁ + p₀ × s₀ mod 2
+//! ```
+//!
+//! It's important that the taps `p` are a property of the LFSR that doesn't change, so the
+//! next feedback bit is calculated as:
+//!
+//! ```text
+//! sₐ₊₁ ≡ pₐ₋₁ × sₐ + ... + p₃ × s₄ + p₂ × s₃ + p₁ × s₂ + p₁ × s₂ + p₀ × s₁ mod 2
+//! ```
+//!
+//! # Example
+//!
+//! Let's consider an 8-bit LFSR with taps p = (0, 0, 0, 1, 1, 1, 0, 1). This information
+//! suffices to draw it as:
+//!
+//! ```text
+//!      MSB                                              LSB
+//!     ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐
+//! ┌──▶│ s₇├─▶│ s₆├─▶│ s₅├─▶│ s₄├┬▶│ s₃├┬▶│ s₂├┬▶│ s₁├─▶│ s₀├┬───▶ output bit
+//! │   └───┘  └───┘  └───┘  └───┘│ └───┘│ └───┘│ └───┘  └───┘│
+//! │s₈                           │      │      │             │
+//! │                             ▼      ▼      ▼             │
+//! └─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘
+//! ```
+//!
+//! We can now calculate the output bit as:
+//!
+//! ```text
+//! s₈ ≡ p₇ × s₇ + p₆ × s₆ + p₅ × s₅ + p₄ × s₄ + p₃ × s₃ + p₂ × s₂ + p₁ × s₁ + p₀ × s₀ mod 2
+//!    ≡  0 × s₇ +  0 × s₆ +  0 × s₅ +  1 × s₄ +  1 × s₃ + 1  × s₂ +  0 × s₁ +  1 × s₀ mod 2
+//!    ≡                                    s₄ +      s₃ +      s₂           +      s₀ mod 2
+//!    ≡ s₄ ⊕ s₃ ⊕ s₂ ⊕  s₀
+//! ```
+//!
+//! Let the initial state s = (1, 1, 0, 0, 1, 0, 0, 1).
+//!
+//! ```text
+//!      MSB                                              LSB
+//!       s₇     s₆     s₅     s₄     s₃     s₂     s₁     s₀
+//!     ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐
+//! ┌──▶│ 1 ├─▶│ 1 ├─▶│ 0 ├─▶│ 0 ├┬▶│ 1 ├┬▶│ 0 ├┬▶│ 0 ├─▶│ 1 ├┬───▶ s₀
+//! │   └───┘  └───┘  └───┘  └───┘│ └───┘│ └───┘│ └───┘  └───┘│
+//! │s₈                           │      │      │             │
+//! │                             ▼      ▼      ▼             │
+//! └─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘
+//! ```
+//!
+//! The first clock cycle now shifts the register to the right using feedback bit s₈.
+//! That bit can be calculated using the equation above:
+//!
+//! ```text
+//! s₈ ≡ s₄ ⊕ s₃ ⊕ s₂ ⊕  s₀
+//!    ≡ 0 ⊕ 1 ⊕ 0 ⊕  1
+//!    ≡ 0
+//! ```
+//!
+//! The output bit is the bit that gets "pushed out" of the register, i.e. s₀ = 0.
+//!
+//! After the first clock the LFSR has state s = (0, 1, 1, 0, 0, 1, 0, 0) and looks like this:
+//!
+//! ```text
+//!      MSB                                              LSB
+//!       s₈     s₇     s₆     s₅     s₄     s₃     s₂     s₁
+//!     ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐
+//! ┌──▶│ 0 ├─▶│ 1 ├─▶│ 1 ├─▶│ 0 ├┬▶│ 0 ├┬▶│ 1 ├┬▶│ 0 ├─▶│ 0 ├┬───▶ s₁
+//! │   └───┘  └───┘  └───┘  └───┘│ └───┘│ └───┘│ └───┘  └───┘│
+//! │s₉                           │      │      │             │
+//! │                             ▼      ▼      ▼             │
+//! └─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘
+//! ```
+//!
+//! For the second clock cycle, the output bit is s₁ = 0 and we can calculate the feedback bit s₉ as:
+//!
+//! ```text
+//! s₉ ≡ s₅ ⊕ s₄ ⊕ s₃ ⊕  s₁
+//!    ≡ 0 ⊕ 0 ⊕ 1 ⊕  0
+//!    ≡ 1
+//! ```
+//!
+//! After the second clock the LFSR has state s = (1, 0, 1, 1, 0, 0, 1, 0) and looks like this:
+//!
+//! ```text
+//!      MSB                                              LSB
+//!       s₉     s₈     s₇     s₆     s₅     s₄     s₃     s₂
+//!     ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐
+//! ┌──▶│ 1 ├─▶│ 0 ├─▶│ 1 ├─▶│ 1 ├┬▶│ 0 ├┬▶│ 0 ├┬▶│ 1 ├─▶│ 0 ├┬───▶ s₂
+//! │   └───┘  └───┘  └───┘  └───┘│ └───┘│ └───┘│ └───┘  └───┘│
+//! │s₁₀                          │      │      │             │
+//! │                             ▼      ▼      ▼             │
+//! └─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘
+//! ```
+//!
+//! ## Feedback Polynomial
+//!
+//! Mathematicians love polynomials, so instead of using the size and the taps to describe an LFSR,
+//! they often use a polynomial:
+//!
+//! ```text
+//! P(x) = p₀ × xᵃ + p₁ × xᵃ⁻¹ + p₂ × xᵃ⁻² + ... + pₐ₋₁  × x¹ + x⁰
+//! ```
+//!
+//! So for the 8-bit LFSR in the example, we had these taps:
+//!
+//! ```text
+//! p = (p₇, p₆, p₅, p₄, p₃, p₂, p₁, p₀)
+//!   = (0,  0,  0,  1,  1,  1,  0,  1)
+//! ```
+//!
+//! Therefore, the feedback polynomial of that LFSR is:
+//!
+//! ```text
+//! P(x) = p₀ × x⁸ + p₁ × x⁷ + p₂ × x⁶ + p₃ × x⁵ + p₄ × x⁴ + p₅ × x³ + p₆ × x² + p₇ × x¹ + x⁰
+//!      =  1 × x⁸ +  0 × x⁷ +  1 × x⁶ +  1 × x⁵ +  1 × x⁴ +  0 × x³ +  0 × x² +  0 × x¹ + x⁰
+//!      =      x⁸ +                x⁶ +      x⁵ +      x⁴ +                               x⁰
+//!      = x⁸ + x⁶ + x⁵ + x⁴ + 1
+//! ```
+//!
 use super::bits;
 
 /// Fibonacci Linear Feedback Shift Register (LFSR)
