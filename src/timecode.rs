@@ -155,19 +155,26 @@ impl Timecode {
         }
 
         // Read a bit from the timecode.
+        // The timecode waveform has a constant frequency with a variable
+        // amplitude. The variations in the amplitude encode the binary data
+        // stream. The primary channel's amplitude is read as a bit when
+        // the secondary channel's waveform crosses 0 and the primary
+        // channel's waveform is positive. Peaks with a larger amplitude
+        // are bit 1 (diagram positions 1 and 3) and peaks with a lower
+        // amplitude are bit 0 (diagram position 2).
         //
-        //    "1"             "1"     Bits encoded by peaks in the positive wave
-        //   ╭───╮    "0"    ╭───╮    of the primary channel. Peaks with a
-        //   │   │   ╭───╮   │   │    higher amplitude represent a "1" (1, 3),
-        // ───(1)─────(2)─────(3)───  peaks with a lower amplitude represent
-        //   │   ╰───╯   │   │   │    a "0" (2).
+        //    "1"             "1"
+        //   ╭───╮    "0"    ╭───╮
+        //   │   │   ╭───╮   │   │
+        // ───(1)─────(2)─────(3)───  primary channel
+        //   │   ╰───╯   │   │   │
         // ──╯           ╰───╯   ╰──
-        //                            The easiest way to detect *when* to read
-        // ╭───╮           ╭───╮   ╭  peak is by looking at the secondary
-        // │   │   ╭───╮   │   │   │  channel's wave. Whenever that wave
-        // ───(1)─────(2)─────(3)───  crosses zero and the primary wave is
-        // │   ╰───╯   │   │   │   │  positive,the primary channel is on a peak
-        // ╯           ╰───╯   ╰───╯  that should be interpreted as a bit.
+        //
+        // ╭───╮           ╭───╮   ╭
+        // │   │   ╭───╮   │   │   │
+        // ───(1)─────(2)─────(3)───  secondary channel
+        // │   ╰───╯   │   │   │   │
+        // ╯           ╰───╯   ╰───╯
         //
         if secondary_crossed_zero
             && self.primary_channel.wave_cycle_status == WaveCycleStatus::Positive
