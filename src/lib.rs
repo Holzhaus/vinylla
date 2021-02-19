@@ -8,6 +8,7 @@ mod bits;
 mod bitstream;
 mod format;
 mod lfsr;
+mod pitch;
 mod timecode;
 mod util;
 
