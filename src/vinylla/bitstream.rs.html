@@ -485,35 +485,35 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_random_bit</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">timecode1</span> <span class="op">=</span> <span class="ident">Bitstream</span>::<span class="ident">new</span>(<span class="number">8</span>, <span class="number">0b11110000</span>, <span class="number">0b10111000</span>);
+    <span class="kw">fn</span> <span class="ident">test_exactly_1_bit_produces_consecutive_positions</span>() {
+        <span class="comment">// At any point in time, you can either process a 1 or a 0.</span>
+        <span class="comment">//</span>
+        <span class="comment">// Let a be the position before processing bit x and b be the position after processing</span>
+        <span class="comment">// bit x. Then a and b should be consecutive positions for exactly one x ∈ {0, 1}.</span>
+
+        <span class="comment">// Process bit 0 and check if positions are consecutive</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">timecode0</span> <span class="op">=</span> <span class="ident">Bitstream</span>::<span class="ident">new</span>(<span class="number">8</span>, <span class="number">0b11110000</span>, <span class="number">0b00011101</span>);
+        <span class="kw">let</span> <span class="ident">position0_a</span> <span class="op">=</span> <span class="ident">timecode0</span>.<span class="ident">position</span>();
+        <span class="ident">timecode0</span>.<span class="ident">process_bit</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">position0_b</span> <span class="op">=</span> <span class="ident">timecode0</span>.<span class="ident">position</span>();
+        <span class="kw">let</span> <span class="ident">consecutive0</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">a</span>), <span class="prelude-val">Some</span>(<span class="ident">b</span>)) <span class="op">=</span> (<span class="ident">position0_a</span>, <span class="ident">position0_b</span>) {
+            <span class="ident">a</span> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>
+        } <span class="kw">else</span> {
+            <span class="bool-val">false</span>
+        };
+
+        <span class="comment">// Now do the same for bit 1</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">timecode1</span> <span class="op">=</span> <span class="ident">Bitstream</span>::<span class="ident">new</span>(<span class="number">8</span>, <span class="number">0b11110000</span>, <span class="number">0b00011101</span>);
         <span class="kw">let</span> <span class="ident">position1_a</span> <span class="op">=</span> <span class="ident">timecode1</span>.<span class="ident">position</span>();
         <span class="ident">timecode1</span>.<span class="ident">process_bit</span>(<span class="number">1</span>);
         <span class="kw">let</span> <span class="ident">position1_b</span> <span class="op">=</span> <span class="ident">timecode1</span>.<span class="ident">position</span>();
+        <span class="kw">let</span> <span class="ident">consecutive1</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">a</span>), <span class="prelude-val">Some</span>(<span class="ident">b</span>)) <span class="op">=</span> (<span class="ident">position1_a</span>, <span class="ident">position1_b</span>) {
+            <span class="ident">a</span> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>
+        } <span class="kw">else</span> {
+            <span class="bool-val">false</span>
+        };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">timecode2</span> <span class="op">=</span> <span class="ident">Bitstream</span>::<span class="ident">new</span>(<span class="number">8</span>, <span class="number">0b11110000</span>, <span class="number">0b10111000</span>);
-        <span class="kw">let</span> <span class="ident">position2_a</span> <span class="op">=</span> <span class="ident">timecode2</span>.<span class="ident">position</span>();
-        <span class="ident">timecode2</span>.<span class="ident">process_bit</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">position2_b</span> <span class="op">=</span> <span class="ident">timecode2</span>.<span class="ident">position</span>();
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">consecutive</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">a</span>) <span class="op">=</span> <span class="ident">position1_a</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=</span> <span class="ident">position1_b</span> {
-                <span class="kw">if</span> <span class="ident">a</span> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span> {
-                    <span class="ident">consecutive</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                }
-            }
-        }
-
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">a</span>) <span class="op">=</span> <span class="ident">position2_a</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=</span> <span class="ident">position2_b</span> {
-                <span class="kw">if</span> <span class="ident">a</span> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span> {
-                    <span class="ident">consecutive</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                }
-            }
-        }
-
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">consecutive</span>, <span class="bool-val">true</span>);
+        <span class="macro">assert_ne</span><span class="macro">!</span>(<span class="ident">consecutive0</span>, <span class="ident">consecutive1</span>);
     }
 }
 </pre></div>
