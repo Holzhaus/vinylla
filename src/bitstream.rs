@@ -224,34 +224,34 @@ mod test {
     }
 
     #[test]
-    fn test_random_bit() {
-        let mut timecode1 = Bitstream::new(8, 0b11110000, 0b10111000);
+    fn test_exactly_1_bit_produces_consecutive_positions() {
+        // At any point in time, you can either process a 1 or a 0.
+        //
+        // Let a be the position before processing bit x and b be the position after processing
+        // bit x. Then a and b should be consecutive positions for exactly one x ∈ {0, 1}.
+
+        // Process bit 0 and check if positions are consecutive
+        let mut timecode0 = Bitstream::new(8, 0b11110000, 0b00011101);
+        let position0_a = timecode0.position();
+        timecode0.process_bit(0);
+        let position0_b = timecode0.position();
+        let consecutive0 = if let (Some(a), Some(b)) = (position0_a, position0_b) {
+            a + 1 == b
+        } else {
+            false
+        };
+
+        // Now do the same for bit 1
+        let mut timecode1 = Bitstream::new(8, 0b11110000, 0b00011101);
         let position1_a = timecode1.position();
         timecode1.process_bit(1);
         let position1_b = timecode1.position();
+        let consecutive1 = if let (Some(a), Some(b)) = (position1_a, position1_b) {
+            a + 1 == b
+        } else {
+            false
+        };
 
-        let mut timecode2 = Bitstream::new(8, 0b11110000, 0b10111000);
-        let position2_a = timecode2.position();
-        timecode2.process_bit(1);
-        let position2_b = timecode2.position();
-
-        let mut consecutive = false;
-        if let Some(a) = position1_a {
-            if let Some(b) = position1_b {
-                if a + 1 == b {
-                    consecutive = true;
-                }
-            }
-        }
-
-        if let Some(a) = position2_a {
-            if let Some(b) = position2_b {
-                if a + 1 == b {
-                    consecutive = true;
-                }
-            }
-        }
-
-        assert_eq!(consecutive, true);
+        assert_ne!(consecutive0, consecutive1);
     }
 }
