@@ -24,3 +24,4 @@ cbindgen = "0.17"
 
 [lib]
 name = "vinylla"
+crate_type = ["lib", "staticlib", "dylib"]
