@@ -18,3 +18,10 @@ documentation = "https://docs.rs/vinylla/"
 
 [dev-dependencies]
 hound = "3.4"
+
+[build-dependencies]
+cbindgen = "0.17"
+
+[lib]
+name = "vinylla"
+crate_type = ["lib", "staticlib", "dylib"]

@@ -47,8 +47,8 @@ fn main() {
             None => return,
             Some(s) => s,
         };
-        if let Some((bit, position)) = timecode.process_channels(left, right) {
-            println!("{:10}: Bit {} => Position {:?}", i, bit as u8, position);
+        if let Some(position) = timecode.process_channels(left, right) {
+            println!("{:10}: Position {:?}", i, position);
             i += 1;
         }
     }

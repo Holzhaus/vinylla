@@ -4,10 +4,12 @@
 #![deny(broken_intra_doc_links)]
 #![cfg_attr(test, deny(warnings))]
 
+pub mod bindings;
 mod bits;
 mod bitstream;
 mod format;
 mod lfsr;
+mod pitch;
 mod timecode;
 mod util;
 
