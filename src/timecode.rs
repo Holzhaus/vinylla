@@ -98,6 +98,7 @@ pub struct Timecode {
     secondary_channel: TimecodeChannel,
     direction: TimecodeDirection,
     pitch: PitchDetector,
+    pitch_value: f64,
 }
 
 impl Timecode {
@@ -109,6 +110,7 @@ impl Timecode {
         let secondary_channel = TimecodeChannel::new();
 
         let pitch = PitchDetector::new(SAMPLE_RATE_HZ, TIMECODE_FREQUENCY_HZ);
+        let pitch_value = 1.0;
 
         Self {
             bitstream,
@@ -116,14 +118,11 @@ impl Timecode {
             secondary_channel,
             direction: TimecodeDirection::Forwards,
             pitch,
+            pitch_value,
         }
     }
 
-    pub fn process_channels(
-        &mut self,
-        primary_sample: i16,
-        secondary_sample: i16,
-    ) -> Option<(bool, Option<u32>)> {
+    pub fn process_channels(&mut self, primary_sample: i16, secondary_sample: i16) -> Option<u32> {
         let primary_sample = sample_to_i32(primary_sample);
         let secondary_sample = sample_to_i32(secondary_sample);
         let primary_crossed_zero = self.primary_channel.process_sample(primary_sample);
@@ -191,12 +190,11 @@ impl Timecode {
         // (i.e. per single zero crossing) then calculate:
         // pitch = 11.025 / number_of_samples_since_previous_zero_crossing
         if primary_crossed_zero || secondary_crossed_zero {
-            let pitch = self.pitch.update_after_zero_crossing(
+            self.pitch_value = self.pitch.update_after_zero_crossing(
                 primary_sample,
                 secondary_sample,
                 primary_crossed_zero,
             );
-            dbg!(pitch);
         } else {
             self.pitch.update(primary_sample, secondary_sample);
         }
@@ -233,9 +231,13 @@ impl Timecode {
             } else {
                 self.bitstream.process_bit_backward(bit as u32);
             }
-            return Some((bit, self.bitstream.position()));
+            return self.bitstream.position();
         }
 
         None
+    }
+
+    pub fn pitch(&self) -> f64 {
+        self.pitch_value
     }
 }
