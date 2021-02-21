@@ -121,6 +121,14 @@ impl Timecode {
             pitch,
         }
     }
+    /// Returns the current state of the bitstream
+    pub fn state(&self) -> u32 {
+        self.bitstream.state()
+    }
+
+    pub fn set_state(&mut self, state: u32) {
+        self.bitstream.set_state(state);
+    }
 
     pub fn process_channels(
         &mut self,
