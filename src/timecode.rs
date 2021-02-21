@@ -23,8 +23,6 @@ pub struct TimecodeChannel {
     peak_threshold: i32,
 }
 
-const SAMPLE_RATE_HZ: f64 = 44100.0;
-const TIMECODE_FREQUENCY_HZ: f64 = 1000.0;
 const TIME_CONSTANT: f64 = 0.001;
 
 const fn sample_to_i32(sample: i16) -> i32 {
@@ -35,8 +33,8 @@ impl TimecodeChannel {
     const ZERO_CROSSING_THRESHOLD: i32 = sample_to_i32(128);
     const INITIAL_PEAK_THRESHOLD: i32 = i32::MAX;
 
-    pub fn new() -> Self {
-        let ewma = ExponentialWeightedMovingAverage::new(TIME_CONSTANT, SAMPLE_RATE_HZ);
+    pub fn new(sample_rate_hz: f64) -> Self {
+        let ewma = ExponentialWeightedMovingAverage::new(TIME_CONSTANT, sample_rate_hz);
 
         let wave_cycle_status = WaveCycleStatus::Positive;
         let samples_since_zero_crossing = 0;
@@ -101,14 +99,19 @@ pub struct Timecode {
 }
 
 impl Timecode {
-    pub fn new(format: &TimecodeFormat) -> Self {
-        let TimecodeFormat { size, seed, taps } = format;
+    pub fn new(format: &TimecodeFormat, sample_rate_hz: f64) -> Self {
+        let TimecodeFormat {
+            size,
+            seed,
+            taps,
+            signal_frequency_hz,
+        } = format;
 
         let bitstream = Bitstream::new(*size, *seed, *taps);
-        let primary_channel = TimecodeChannel::new();
-        let secondary_channel = TimecodeChannel::new();
+        let primary_channel = TimecodeChannel::new(sample_rate_hz);
+        let secondary_channel = TimecodeChannel::new(sample_rate_hz);
 
-        let pitch = PitchDetector::new(SAMPLE_RATE_HZ, TIMECODE_FREQUENCY_HZ);
+        let pitch = PitchDetector::new(sample_rate_hz, *signal_frequency_hz);
 
         Self {
             bitstream,

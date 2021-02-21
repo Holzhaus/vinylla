@@ -29,7 +29,7 @@ fn main() {
     println!("File: {}", path);
     let mut reader = WavReader::open(&path).unwrap();
     let mut samples = reader.samples::<i16>().map(|x| x.unwrap());
-    let mut timecode = Timecode::new(&SERATO_CONTROL_CD_1_0_0);
+    let mut timecode = Timecode::new(&SERATO_CONTROL_CD_1_0_0, 44100.0);
 
     // Set up SDL window and Texture that we can draw on
     let sdl_context = sdl2::init().unwrap();

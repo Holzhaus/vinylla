@@ -23,7 +23,7 @@ fn main() {
 
     println!("{}", path);
     let mut reader = WavReader::open(&path).unwrap();
-    let mut timecode = Timecode::new(&SERATO_CONTROL_CD_1_0_0);
+    let mut timecode = Timecode::new(&SERATO_CONTROL_CD_1_0_0, 44100.0);
 
     let mut i = 0;
     let mut position = reader.len() / 2;
