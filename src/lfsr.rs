@@ -159,6 +159,7 @@
 use super::bits;
 
 /// Fibonacci Linear Feedback Shift Register (LFSR)
+#[derive(Debug, Clone, PartialEq)]
 pub struct FibonacciLfsr {
     pub size: usize,
     pub state: u32,
@@ -190,6 +191,12 @@ impl FibonacciLfsr {
         self.state = self.previous_state();
         self.state
     }
+
+    ///// Returns the maximum period length for the register size
+    //pub fn max_period(size: usize) -> usize {
+    //    assert!(size < (u32::MAX as usize));
+    //    2_usize.pow(size as u32) - 1
+    //}
 }
 
 #[cfg(test)]

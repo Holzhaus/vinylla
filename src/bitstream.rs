@@ -88,6 +88,15 @@ impl Bitstream {
         self.valid_bits >= self.size
     }
 
+    /// Returns the current state of the bitstream
+    pub fn state(&self) -> u32 {
+        self.bitstream
+    }
+
+    pub fn set_state(&mut self, state: u32) {
+        self.bitstream = state;
+    }
+
     /// Retrieve the Position from the current bitstream.
     ///
     /// Returns None if the bitstream is considered invalid.
