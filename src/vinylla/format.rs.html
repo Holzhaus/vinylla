@@ -20,12 +20,15 @@
 <span id="17">17</span>
 <span id="18">18</span>
 <span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TimecodeFormat</span> {
     <span class="kw">pub</span> <span class="ident">size</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">seed</span>: <span class="ident">u32</span>,
     <span class="kw">pub</span> <span class="ident">taps</span>: <span class="ident">u32</span>,
+    <span class="kw">pub</span> <span class="ident">signal_frequency_hz</span>: <span class="ident">f64</span>,
 }
 
 <span class="doccomment">/// Serato Control CD 1.0.0</span>
@@ -39,6 +42,7 @@
     <span class="doccomment">/// LFSR feedback polynomial:</span>
     <span class="doccomment">/// x^20 + x^18 + x^16 + x^14 + x^12 + x^10 + x^9 + x^6 + x^4 + x^3 + 1</span>
     <span class="ident">taps</span>: <span class="number">0b0011_0100_1101_0101_0101</span>,
+    <span class="ident">signal_frequency_hz</span>: <span class="number">1000.0</span>,
 };
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "vinylla";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

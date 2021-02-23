@@ -242,6 +242,9 @@
 <span id="239">239</span>
 <span id="240">240</span>
 <span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">bitstream</span>::<span class="ident">Bitstream</span>, <span class="ident">format</span>::<span class="ident">TimecodeFormat</span>, <span class="ident">pitch</span>::<span class="ident">PitchDetector</span>,
@@ -268,8 +271,6 @@
     <span class="ident">peak_threshold</span>: <span class="ident">i32</span>,
 }
 
-<span class="kw">const</span> <span class="ident">SAMPLE_RATE_HZ</span>: <span class="ident">f64</span> <span class="op">=</span> <span class="number">44100.0</span>;
-<span class="kw">const</span> <span class="ident">TIMECODE_FREQUENCY_HZ</span>: <span class="ident">f64</span> <span class="op">=</span> <span class="number">1000.0</span>;
 <span class="kw">const</span> <span class="ident">TIME_CONSTANT</span>: <span class="ident">f64</span> <span class="op">=</span> <span class="number">0.001</span>;
 
 <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">sample_to_i32</span>(<span class="ident">sample</span>: <span class="ident">i16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
@@ -280,8 +281,8 @@
     <span class="kw">const</span> <span class="ident">ZERO_CROSSING_THRESHOLD</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">sample_to_i32</span>(<span class="number">128</span>);
     <span class="kw">const</span> <span class="ident">INITIAL_PEAK_THRESHOLD</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">MAX</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">ewma</span> <span class="op">=</span> <span class="ident">ExponentialWeightedMovingAverage</span>::<span class="ident">new</span>(<span class="ident">TIME_CONSTANT</span>, <span class="ident">SAMPLE_RATE_HZ</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">sample_rate_hz</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">ewma</span> <span class="op">=</span> <span class="ident">ExponentialWeightedMovingAverage</span>::<span class="ident">new</span>(<span class="ident">TIME_CONSTANT</span>, <span class="ident">sample_rate_hz</span>);
 
         <span class="kw">let</span> <span class="ident">wave_cycle_status</span> <span class="op">=</span> <span class="ident">WaveCycleStatus</span>::<span class="ident">Positive</span>;
         <span class="kw">let</span> <span class="ident">samples_since_zero_crossing</span> <span class="op">=</span> <span class="number">0</span>;
@@ -346,14 +347,19 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Timecode</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">format</span>: <span class="kw-2">&amp;</span><span class="ident">TimecodeFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">TimecodeFormat</span> { <span class="ident">size</span>, <span class="ident">seed</span>, <span class="ident">taps</span> } <span class="op">=</span> <span class="ident">format</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">format</span>: <span class="kw-2">&amp;</span><span class="ident">TimecodeFormat</span>, <span class="ident">sample_rate_hz</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">TimecodeFormat</span> {
+            <span class="ident">size</span>,
+            <span class="ident">seed</span>,
+            <span class="ident">taps</span>,
+            <span class="ident">signal_frequency_hz</span>,
+        } <span class="op">=</span> <span class="ident">format</span>;
 
         <span class="kw">let</span> <span class="ident">bitstream</span> <span class="op">=</span> <span class="ident">Bitstream</span>::<span class="ident">new</span>(<span class="kw-2">*</span><span class="ident">size</span>, <span class="kw-2">*</span><span class="ident">seed</span>, <span class="kw-2">*</span><span class="ident">taps</span>);
-        <span class="kw">let</span> <span class="ident">primary_channel</span> <span class="op">=</span> <span class="ident">TimecodeChannel</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="ident">secondary_channel</span> <span class="op">=</span> <span class="ident">TimecodeChannel</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="ident">primary_channel</span> <span class="op">=</span> <span class="ident">TimecodeChannel</span>::<span class="ident">new</span>(<span class="ident">sample_rate_hz</span>);
+        <span class="kw">let</span> <span class="ident">secondary_channel</span> <span class="op">=</span> <span class="ident">TimecodeChannel</span>::<span class="ident">new</span>(<span class="ident">sample_rate_hz</span>);
 
-        <span class="kw">let</span> <span class="ident">pitch</span> <span class="op">=</span> <span class="ident">PitchDetector</span>::<span class="ident">new</span>(<span class="ident">SAMPLE_RATE_HZ</span>, <span class="ident">TIMECODE_FREQUENCY_HZ</span>);
+        <span class="kw">let</span> <span class="ident">pitch</span> <span class="op">=</span> <span class="ident">PitchDetector</span>::<span class="ident">new</span>(<span class="ident">sample_rate_hz</span>, <span class="kw-2">*</span><span class="ident">signal_frequency_hz</span>);
 
         <span class="self">Self</span> {
             <span class="ident">bitstream</span>,
