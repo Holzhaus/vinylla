@@ -25,8 +25,8 @@
 //!
 //! # Speed Detection
 //!
-//! The timecode has a frequency of 1000 Hz and the sample rate is 44100 Hz.
-//! This means a cycle at full playback rate takes 44.1 samples to complete.
+//! The timecode has a frequency of 1000 Hz. With a sample rate of 44100 Hz,
+//! a cycle at full playback rate takes 44.1 samples to complete.
 //!
 //! ```text
 //!     ⇤ Cycle ⇥
