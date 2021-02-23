@@ -4,6 +4,15 @@
 //! positions of the current state are XOR'ed and the result is fed back into the register. The
 //! rightmost bit of the state that is "pushed out" of the register is the output bit.
 //!
+//! The output stream is a periodic function given the size of the n-bit state, the initial state,
+//! and the bits that are "tapped" to calculate each input. Every n-bits within the output stream
+//! is unique within one period. The deterministic behavior of the LFSR allows any n-bits of
+//! output to be used to identify the state of the LFSR. Thus [Bitstream](crate::bitstream) can use
+//! any sequence of n-bits within the output stream and map them to a position within the period
+//! without a need to identify word boundaries. If the bitstream signal is noisy, as may be the case
+//! with a bitstream decoded from a timecode record on a turntable, this allows for recovering from
+//! errors as soon as a valid sequence of n-bits are read.
+//!
 //! # Description
 //!
 //! *Note: Let a = n. We use a instead of n here because there is no subscript n in Unicode). Also,

@@ -1,3 +1,88 @@
+//! Timecode takes a stream of stereo PCM audio from a timecode vinyl record or CD and decodes
+//! the playback direction, speed, and position.
+//!
+//! # Direction Detection
+//!
+//! The timecode audio signal is a constant frequency.
+//! The stereo channels carry the same signal out of phase by a quarter waveform period.
+//! The direction is detected by comparing the polarity of the channels after either of them
+//! cross 0:
+//!
+//! ```text
+//!                         Assuming the primary channel crossed zero:
+//!  ──╮   ╭───╮   ╭(4)╮    If both the primary wave and the secondary
+//!    │  (2)  │   │   │    wave are negative (1) or both are positive
+//!  ─────────────────────  (2), then the timecode is playing forwards,
+//!   (1)  │   │   │   │    otherwise it's playing backwards.
+//!    ╰───╯   ╰(3)╯   ╰──
+//!                         Assuming the secondary channel crossed zero:
+//!  ╮   ╭(2)╮   ╭───╮   ╭  If the primary wave is negative and the
+//!  │   │   │  (3)  │   │  secondary wave is positive (3) or if the
+//!  ─────────────────────  primary wave is positive and the secondary
+//!  │   │   │   │  (4)  │  wave is positive (4), the timecode is playing
+//!  ╰(1)╯   ╰───╯   ╰───╯  forwards, otherwise it's playing backwards.
+//! ```
+//!
+//! # Speed Detection
+//!
+//! The timecode has a frequency of 1000 Hz. With a sample rate of 44100 Hz,
+//! a cycle at full playback rate takes 44.1 samples to complete.
+//!
+//! ```text
+//!     ⇤ Cycle ⇥
+//!  ──╮┋  ╭───╮┋  ╭
+//!    │┋  │   │┋  │
+//!  ───┋──2───4┋───
+//!    │┋  │   │┋  │
+//!    ╰┋──╯   ╰┋──╯
+//!     ┋       ┋
+//!  ╮  ┋╭───╮  ┋╭──
+//!  │  ┋│   │  ┋│
+//!  ───┋1───3──┋───
+//!  │  ┋│   │  ┋│
+//!  ╰──┋╯   ╰──┋╯
+//! ```
+//!
+//! For each cycle, the wave for each channel crosses zero 2 times, so there are 4 zero
+//! crossings per cycle total. This means there should be 4 zero crossings per 44.1 samples
+//! if the record is playing with full speed. With the record is played back with double
+//! speed, it takes 22.05 samples to complete a cycle (in other words: to detect 4 zero
+//! crossings), and if it plays with half speed, it takes 88.2 samples.
+//!
+//! This means [PitchDetector](crate::pitch) can count the number of samples of the last
+//! current cycle, and then calculate the pitch as 44.1 / number_of_samples_of_this_cycle.
+//!
+//! To get faster responses, PitchDetector can simply count the number of samples per quarter
+//! cycle (i.e. per single zero crossing) then calculate:
+//! pitch = 11.025 / number_of_samples_since_previous_zero_crossing
+//!
+//! # Position Detection
+//!
+//! While the frequency is constant, the amplitude varies. The variations in amplitude encode
+//! a binary data stream. The primary channel's amplitude is read as a bit when the secondary
+//! channel's waveform crosses 0 and the primary channel's waveform is positive. Peaks with a
+//! larger amplitude are bit 1 (diagram positions 1 and 3) and peaks with a lower amplitude are
+//! bit 0 (diagram position 2).
+//!
+//! ```text
+//!    "1"             "1"
+//!   ╭───╮    "0"    ╭───╮
+//!   │   │   ╭───╮   │   │
+//! ───(1)─────(2)─────(3)───  primary channel
+//!   │   ╰───╯   │   │   │
+//! ──╯           ╰───╯   ╰──
+//!
+//! ╭───╮           ╭───╮   ╭
+//! │   │   ╭───╮   │   │   │
+//! ───(1)─────(2)─────(3)───  secondary channel
+//! │   ╰───╯   │   │   │   │
+//! ╯           ╰───╯   ╰───╯
+//!
+//! ```
+//!
+//! The binary [bitstream](crate::bitstream) is the output of an [LFSR](crate::lfsr), allowing
+//! a short sequence of bits anywhere in the bitstream to identify a unique position without
+//! a need for word boundaries.
 use crate::{
     bitstream::Bitstream, format::TimecodeFormat, pitch::PitchDetector,
     util::ExponentialWeightedMovingAverage,
@@ -129,21 +214,7 @@ impl Timecode {
         let primary_crossed_zero = self.primary_channel.process_sample(primary_sample);
         let secondary_crossed_zero = self.secondary_channel.process_sample(secondary_sample);
 
-        // Detect the playback direction of the timecode.
-        //
-        //                         Assuming the primary channel crossed zero:
-        //  ──╮   ╭───╮   ╭(4)╮    If both the primary wave and the secondary
-        //    │  (2)  │   │   │    wave are negative (1) or both are positive
-        //  ─────────────────────  (2), then the timecode is playing forwards,
-        //   (1)  │   │   │   │    otherwise it's playing backwards.
-        //    ╰───╯   ╰(3)╯   ╰──
-        //                         Assuming the secondary channel crossed zero:
-        //  ╮   ╭(2)╮   ╭───╮   ╭  If the primary wave is negative and the
-        //  │   │   │  (3)  │   │  secondary wave is positive (3) or if the
-        //  ─────────────────────  primary wave is positive and the secondary
-        //  │   │   │   │  (4)  │  wave is positive (4), the timecode is playing
-        //  ╰(1)╯   ╰───╯   ╰───╯  forwards, otherwise it's playing backwards.
-        //
+        // detect playback direction
         if primary_crossed_zero {
             self.direction = if self.primary_channel.wave_cycle_status
                 == self.secondary_channel.wave_cycle_status
@@ -162,34 +233,7 @@ impl Timecode {
             }
         }
 
-        // The timecode has a frequency of 1000 Hz and the sample rate is 44100 Hz.
-        // This means a cycle at full playback rate takes 44.1 samples to complete.
-        //
-        //     ⇤ Cycle ⇥
-        //  ──╮┋  ╭───╮┋  ╭
-        //    │┋  │   │┋  │
-        //  ───┋──2───4┋───
-        //    │┋  │   │┋  │
-        //    ╰┋──╯   ╰┋──╯
-        //     ┋       ┋
-        //  ╮  ┋╭───╮  ┋╭──
-        //  │  ┋│   │  ┋│
-        //  ───┋1───3──┋───
-        //  │  ┋│   │  ┋│
-        //  ╰──┋╯   ╰──┋╯
-        //
-        // For each cycle, the wave for each channel crosses zero 2 times, so there are 4 zero
-        // crossings per cycle total. This means there should be 4 zero crossings per 44.1 samples
-        // if the record is playing with full speed. With the record is played back with double
-        // speed, it takes 22.05 samples to complete a cycle (in other words: to detect 4 zero
-        // crossings), and if it plays with half speed, it takes 88.2 samples.
-        //
-        // This means we can count the number of samples of the last current cycle, and then
-        // calculate the pitch as 44.1 / number_of_samples_of_this_cycle.
-        //
-        // To get faster responses, we can simply count the number of samples per quarter cycle
-        // (i.e. per single zero crossing) then calculate:
-        // pitch = 11.025 / number_of_samples_since_previous_zero_crossing
+        // detect playback speed
         if primary_crossed_zero || secondary_crossed_zero {
             let pitch = self.pitch.update_after_zero_crossing(
                 primary_sample,
@@ -201,29 +245,7 @@ impl Timecode {
             self.pitch.update(primary_sample, secondary_sample);
         }
 
-        // Read a bit from the timecode.
-        //
-        // The timecode waveform has a constant frequency with a variable
-        // amplitude. The variations in the amplitude encode the binary data
-        // stream. The primary channel's amplitude is read as a bit when
-        // the secondary channel's waveform crosses 0 and the primary
-        // channel's waveform is positive. Peaks with a larger amplitude
-        // are bit 1 (diagram positions 1 and 3) and peaks with a lower
-        // amplitude are bit 0 (diagram position 2).
-        //
-        //    "1"             "1"
-        //   ╭───╮    "0"    ╭───╮
-        //   │   │   ╭───╮   │   │
-        // ───(1)─────(2)─────(3)───  primary channel
-        //   │   ╰───╯   │   │   │
-        // ──╯           ╰───╯   ╰──
-        //
-        // ╭───╮           ╭───╮   ╭
-        // │   │   ╭───╮   │   │   │
-        // ───(1)─────(2)─────(3)───  secondary channel
-        // │   ╰───╯   │   │   │   │
-        // ╯           ╰───╯   ╰───╯
-        //
+        // Read a bit from the timecode and detect position within the timecode signal
         if secondary_crossed_zero
             && self.primary_channel.wave_cycle_status == WaveCycleStatus::Positive
         {
