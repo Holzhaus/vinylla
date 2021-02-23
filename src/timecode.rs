@@ -49,11 +49,11 @@
 //! speed, it takes 22.05 samples to complete a cycle (in other words: to detect 4 zero
 //! crossings), and if it plays with half speed, it takes 88.2 samples.
 //!
-//! This means we can count the number of samples of the last current cycle, and then
-//! calculate the pitch as 44.1 / number_of_samples_of_this_cycle.
+//! This means [PitchDetector](crate::pitch) can count the number of samples of the last
+//! current cycle, and then calculate the pitch as 44.1 / number_of_samples_of_this_cycle.
 //!
-//! To get faster responses, we can simply count the number of samples per quarter cycle
-//! (i.e. per single zero crossing) then calculate:
+//! To get faster responses, PitchDetector can simply count the number of samples per quarter
+//! cycle (i.e. per single zero crossing) then calculate:
 //! pitch = 11.025 / number_of_samples_since_previous_zero_crossing
 //!
 //! # Position Detection
