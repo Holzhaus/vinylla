@@ -45,9 +45,40 @@
 //! a short sequence of bits anywhere in the bitstream to identify a unique position without
 //! a need for word boundaries.
 //!
-//! TODO: implement detection of playback speed
+//! The timecode has a frequency of 1000 Hz and the sample rate is 44100 Hz.
+//! This means a cycle at full playback rate takes 44.1 samples to complete.
 //!
-use crate::{bitstream::Bitstream, format::TimecodeFormat, util::ExponentialWeightedMovingAverage};
+//! ```text
+//!     ⇤ Cycle ⇥
+//!  ──╮┋  ╭───╮┋  ╭
+//!    │┋  │   │┋  │
+//!  ───┋──2───4┋───
+//!    │┋  │   │┋  │
+//!    ╰┋──╯   ╰┋──╯
+//!     ┋       ┋
+//!  ╮  ┋╭───╮  ┋╭──
+//!  │  ┋│   │  ┋│
+//!  ───┋1───3──┋───
+//!  │  ┋│   │  ┋│
+//!  ╰──┋╯   ╰──┋╯
+//! ```
+//!
+//! For each cycle, the wave for each channel crosses zero 2 times, so there are 4 zero
+//! crossings per cycle total. This means there should be 4 zero crossings per 44.1 samples
+//! if the record is playing with full speed. With the record is played back with double
+//! speed, it takes 22.05 samples to complete a cycle (in other words: to detect 4 zero
+//! crossings), and if it plays with half speed, it takes 88.2 samples.
+//!
+//! This means we can count the number of samples of the last current cycle, and then
+//! calculate the pitch as 44.1 / number_of_samples_of_this_cycle.
+//!
+//! To get faster responses, we can simply count the number of samples per quarter cycle
+//! (i.e. per single zero crossing) then calculate:
+//! pitch = 11.025 / number_of_samples_since_previous_zero_crossing
+use crate::{
+    bitstream::Bitstream, format::TimecodeFormat, pitch::PitchDetector,
+    util::ExponentialWeightedMovingAverage,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WaveCycleStatus {
@@ -70,6 +101,7 @@ pub struct TimecodeChannel {
 }
 
 const SAMPLE_RATE_HZ: f64 = 44100.0;
+const TIMECODE_FREQUENCY_HZ: f64 = 1000.0;
 const TIME_CONSTANT: f64 = 0.001;
 
 const fn sample_to_i32(sample: i16) -> i32 {
@@ -142,6 +174,7 @@ pub struct Timecode {
     primary_channel: TimecodeChannel,
     secondary_channel: TimecodeChannel,
     direction: TimecodeDirection,
+    pitch: PitchDetector,
 }
 
 impl Timecode {
@@ -152,11 +185,14 @@ impl Timecode {
         let primary_channel = TimecodeChannel::new();
         let secondary_channel = TimecodeChannel::new();
 
+        let pitch = PitchDetector::new(SAMPLE_RATE_HZ, TIMECODE_FREQUENCY_HZ);
+
         Self {
             bitstream,
             primary_channel,
             secondary_channel,
             direction: TimecodeDirection::Forwards,
+            pitch,
         }
     }
 
@@ -187,6 +223,18 @@ impl Timecode {
             } else {
                 TimecodeDirection::Backwards
             }
+        }
+
+        // detect playback speed
+        if primary_crossed_zero || secondary_crossed_zero {
+            let pitch = self.pitch.update_after_zero_crossing(
+                primary_sample,
+                secondary_sample,
+                primary_crossed_zero,
+            );
+            dbg!(pitch);
+        } else {
+            self.pitch.update(primary_sample, secondary_sample);
         }
 
         // Read a bit from the timecode and detect position within the timecode signal
