@@ -18,8 +18,7 @@ pub struct TimecodeFormat {
 /// Website](https://serato.com/controlcd/downloads) as zipped WAV file or ISO image.
 pub const SERATO_CONTROL_CD_1_0_0: TimecodeFormat = TimecodeFormat {
     size: 20,
-    //seed: 0b0010_1000_1000_0101_1011,
-    seed: 0b0000_1100_0011_0000_0111,
+    seed: 0b1001_0001_0100_1010_1011,
     /// LFSR feedback polynomial:
     /// x^20 + x^18 + x^16 + x^14 + x^12 + x^10 + x^9 + x^6 + x^4 + x^3 + 1
     taps: 0b0011_0100_1101_0101_0101,
