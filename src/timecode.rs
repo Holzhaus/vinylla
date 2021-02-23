@@ -1,5 +1,9 @@
 //! Timecode takes a stream of stereo PCM audio from a timecode vinyl record or CD and decodes
-//! the position and playback direction. The timecode audio signal is a constant frequency.
+//! the playback direction, speed, and position.
+//!
+//! # Direction Detection
+//!
+//! The timecode audio signal is a constant frequency.
 //! The stereo channels carry the same signal out of phase by a quarter waveform period.
 //! The direction is detected by comparing the polarity of the channels after either of them
 //! cross 0:
@@ -19,31 +23,7 @@
 //!  ╰(1)╯   ╰───╯   ╰───╯  forwards, otherwise it's playing backwards.
 //! ```
 //!
-//! While the frequency is constant, the amplitude varies. The variations in amplitude encode
-//! a binary data stream. The primary channel's amplitude is read as a bit when the secondary
-//! channel's waveform crosses 0 and the primary channel's waveform is positive. Peaks with a
-//! larger amplitude are bit 1 (diagram positions 1 and 3) and peaks with a lower amplitude are
-//! bit 0 (diagram position 2).
-//!
-//! ```text
-//!    "1"             "1"
-//!   ╭───╮    "0"    ╭───╮
-//!   │   │   ╭───╮   │   │
-//! ───(1)─────(2)─────(3)───  primary channel
-//!   │   ╰───╯   │   │   │
-//! ──╯           ╰───╯   ╰──
-//!
-//! ╭───╮           ╭───╮   ╭
-//! │   │   ╭───╮   │   │   │
-//! ───(1)─────(2)─────(3)───  secondary channel
-//! │   ╰───╯   │   │   │   │
-//! ╯           ╰───╯   ╰───╯
-//!
-//! ```
-//!
-//! The binary [bitstream](crate::bitstream) is the output of an [LFSR](crate::lfsr), allowing
-//! a short sequence of bits anywhere in the bitstream to identify a unique position without
-//! a need for word boundaries.
+//! # Speed Detection
 //!
 //! The timecode has a frequency of 1000 Hz and the sample rate is 44100 Hz.
 //! This means a cycle at full playback rate takes 44.1 samples to complete.
@@ -75,6 +55,34 @@
 //! To get faster responses, we can simply count the number of samples per quarter cycle
 //! (i.e. per single zero crossing) then calculate:
 //! pitch = 11.025 / number_of_samples_since_previous_zero_crossing
+//!
+//! # Position Detection
+//!
+//! While the frequency is constant, the amplitude varies. The variations in amplitude encode
+//! a binary data stream. The primary channel's amplitude is read as a bit when the secondary
+//! channel's waveform crosses 0 and the primary channel's waveform is positive. Peaks with a
+//! larger amplitude are bit 1 (diagram positions 1 and 3) and peaks with a lower amplitude are
+//! bit 0 (diagram position 2).
+//!
+//! ```text
+//!    "1"             "1"
+//!   ╭───╮    "0"    ╭───╮
+//!   │   │   ╭───╮   │   │
+//! ───(1)─────(2)─────(3)───  primary channel
+//!   │   ╰───╯   │   │   │
+//! ──╯           ╰───╯   ╰──
+//!
+//! ╭───╮           ╭───╮   ╭
+//! │   │   ╭───╮   │   │   │
+//! ───(1)─────(2)─────(3)───  secondary channel
+//! │   ╰───╯   │   │   │   │
+//! ╯           ╰───╯   ╰───╯
+//!
+//! ```
+//!
+//! The binary [bitstream](crate::bitstream) is the output of an [LFSR](crate::lfsr), allowing
+//! a short sequence of bits anywhere in the bitstream to identify a unique position without
+//! a need for word boundaries.
 use crate::{
     bitstream::Bitstream, format::TimecodeFormat, pitch::PitchDetector,
     util::ExponentialWeightedMovingAverage,
