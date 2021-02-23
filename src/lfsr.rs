@@ -1,3 +1,9 @@
+// vinylla - (c) 2021 Jan Holthuis <holthuis.jan@gmail.com> et al.
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 //! Implementation of a Fibonacci Linear Feedback Shift Register (LFSR).
 //!
 //! An n-bit LFSR generates a bitstream from an n-bit state. For each cycle, the bits at certain
