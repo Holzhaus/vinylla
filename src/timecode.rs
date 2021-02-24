@@ -78,12 +78,15 @@ impl TimecodeChannel {
 
     /// Reads a bit from the sample and adjust the threshold.
     pub fn bit_from_sample(&mut self, sample: i32) -> bool {
-        let delta = self.ewma.difference_to(sample).abs() - self.peak_threshold;
-        let bit = delta > 0;
+        let sample = sample >> 16;
+        //let delta = self.ewma.difference_to(sample).abs() - self.peak_threshold;
+        //let bit = delta > 0;
+        let bit = sample > 14418;
+        dbg!(sample, bit);
 
         // TODO: The peak threshold is more or less determined by trial and error. This needs to be
         // improved by somebody with more DSP knowledge.
-        self.peak_threshold += delta >> 6;
+        //self.peak_threshold += delta >> 6;
 
         bit
     }
