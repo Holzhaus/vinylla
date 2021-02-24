@@ -2,6 +2,7 @@ use crate::{
     bitstream::Bitstream, format::TimecodeFormat, pitch::PitchDetector,
     util::ExponentialWeightedMovingAverage,
 };
+use std::cmp;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WaveCycleStatus {
@@ -23,15 +24,14 @@ pub struct TimecodeChannel {
     peak_threshold: i32,
 }
 
-const TIME_CONSTANT: f64 = 0.001;
+const TIME_CONSTANT: f64 = 0.0001;
 
 const fn sample_to_i32(sample: i16) -> i32 {
     (sample as i32) << 16
 }
 
 impl TimecodeChannel {
-    const ZERO_CROSSING_THRESHOLD: i32 = sample_to_i32(128);
-    const INITIAL_PEAK_THRESHOLD: i32 = i32::MAX;
+    const INITIAL_PEAK_THRESHOLD: i32 = 0;
 
     pub fn new(sample_rate_hz: f64) -> Self {
         let ewma = ExponentialWeightedMovingAverage::new(TIME_CONSTANT, sample_rate_hz);
@@ -50,11 +50,9 @@ impl TimecodeChannel {
 
     /// Returns true if the wave has crossed zero.
     pub fn has_crossed_zero(&self, sample: i32) -> bool {
-        let adjusted_zero_crossing_threshold =
-            self.ewma.last_output + Self::ZERO_CROSSING_THRESHOLD;
         match self.wave_cycle_status {
-            WaveCycleStatus::Negative => sample > adjusted_zero_crossing_threshold,
-            WaveCycleStatus::Positive => sample < adjusted_zero_crossing_threshold,
+            WaveCycleStatus::Negative => sample > self.ewma.last_output,
+            WaveCycleStatus::Positive => sample < self.ewma.last_output,
         }
     }
 
@@ -78,14 +76,10 @@ impl TimecodeChannel {
 
     /// Reads a bit from the sample and adjust the threshold.
     pub fn bit_from_sample(&mut self, sample: i32) -> bool {
-        let delta = self.ewma.difference_to(sample).abs() - self.peak_threshold;
-        let bit = delta > 0;
-
-        // TODO: The peak threshold is more or less determined by trial and error. This needs to be
-        // improved by somebody with more DSP knowledge.
-        self.peak_threshold += delta >> 6;
-
-        bit
+        let sample = self.ewma.difference_to(sample).abs();
+        self.peak_threshold = cmp::max(sample, self.peak_threshold);
+        let threshold = (f64::from(self.peak_threshold) * 0.9).trunc() as i32;
+        sample > threshold
     }
 }
 
