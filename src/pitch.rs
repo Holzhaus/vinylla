@@ -15,7 +15,6 @@ pub struct PitchDetector {
 impl PitchDetector {
     pub fn new(sample_rate_hz: f64, timecode_frequency_hz: f64) -> Self {
         let samples_per_quarter_cycle = sample_rate_hz / timecode_frequency_hz / 4.0;
-        dbg!(samples_per_quarter_cycle);
 
         PitchDetector {
             samples_per_quarter_cycle,
