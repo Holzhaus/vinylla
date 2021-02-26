@@ -20,7 +20,6 @@ pub enum TimecodeDirection {
 pub struct TimecodeChannel {
     ewma: ExponentialWeightedMovingAverage,
     wave_cycle_status: WaveCycleStatus,
-    samples_since_zero_crossing: usize,
     peak_threshold: i32,
 }
 
@@ -37,13 +36,11 @@ impl TimecodeChannel {
         let ewma = ExponentialWeightedMovingAverage::new(TIME_CONSTANT, sample_rate_hz);
 
         let wave_cycle_status = WaveCycleStatus::Positive;
-        let samples_since_zero_crossing = 0;
         let peak_threshold = Self::INITIAL_PEAK_THRESHOLD;
 
         TimecodeChannel {
             ewma,
             wave_cycle_status,
-            samples_since_zero_crossing,
             peak_threshold,
         }
     }
@@ -64,9 +61,6 @@ impl TimecodeChannel {
                 WaveCycleStatus::Negative => WaveCycleStatus::Positive,
                 WaveCycleStatus::Positive => WaveCycleStatus::Negative,
             };
-            self.samples_since_zero_crossing = 0;
-        } else {
-            self.samples_since_zero_crossing += 1;
         }
 
         self.ewma.process(sample);
