@@ -73,7 +73,6 @@
 <span id="70">70</span>
 <span id="71">71</span>
 <span id="72">72</span>
-<span id="73">73</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// vinylla - (c) 2021 Jan Holthuis &lt;holthuis.jan@gmail.com&gt; et al.</span>
 <span class="comment">//</span>
@@ -92,7 +91,6 @@
 <span class="kw">impl</span> <span class="ident">PitchDetector</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">sample_rate_hz</span>: <span class="ident">f64</span>, <span class="ident">timecode_frequency_hz</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">samples_per_quarter_cycle</span> <span class="op">=</span> <span class="ident">sample_rate_hz</span> <span class="op">/</span> <span class="ident">timecode_frequency_hz</span> <span class="op">/</span> <span class="number">4.0</span>;
-        <span class="macro">dbg</span><span class="macro">!</span>(<span class="ident">samples_per_quarter_cycle</span>);
 
         <span class="ident">PitchDetector</span> {
             <span class="ident">samples_per_quarter_cycle</span>,

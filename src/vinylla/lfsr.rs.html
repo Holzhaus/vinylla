@@ -319,6 +319,13 @@
 <span id="316">316</span>
 <span id="317">317</span>
 <span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// vinylla - (c) 2021 Jan Holthuis &lt;holthuis.jan@gmail.com&gt; et al.</span>
 <span class="comment">//</span>
@@ -481,6 +488,7 @@
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">bits</span>;
 
 <span class="doccomment">/// Fibonacci Linear Feedback Shift Register (LFSR)</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FibonacciLfsr</span> {
     <span class="kw">pub</span> <span class="ident">size</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">state</span>: <span class="ident">u32</span>,
@@ -512,6 +520,12 @@
         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">previous_state</span>();
         <span class="self">self</span>.<span class="ident">state</span>
     }
+
+    <span class="comment">///// Returns the maximum period length for the register size</span>
+    <span class="comment">//pub fn max_period(size: usize) -&gt; usize {</span>
+    <span class="comment">//    assert!(size &lt; (u32::MAX as usize));</span>
+    <span class="comment">//    2_usize.pow(size as u32) - 1</span>
+    <span class="comment">//}</span>
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>

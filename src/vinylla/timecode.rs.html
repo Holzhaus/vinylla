@@ -246,11 +246,6 @@
 <span id="243">243</span>
 <span id="244">244</span>
 <span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// vinylla - (c) 2021 Jan Holthuis &lt;holthuis.jan@gmail.com&gt; et al.</span>
 <span class="comment">//</span>
@@ -262,6 +257,7 @@
     <span class="ident">bitstream</span>::<span class="ident">Bitstream</span>, <span class="ident">format</span>::<span class="ident">TimecodeFormat</span>, <span class="ident">pitch</span>::<span class="ident">PitchDetector</span>,
     <span class="ident">util</span>::<span class="ident">ExponentialWeightedMovingAverage</span>,
 };
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">WaveCycleStatus</span> {
@@ -279,42 +275,36 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TimecodeChannel</span> {
     <span class="ident">ewma</span>: <span class="ident">ExponentialWeightedMovingAverage</span>,
     <span class="ident">wave_cycle_status</span>: <span class="ident">WaveCycleStatus</span>,
-    <span class="ident">samples_since_zero_crossing</span>: <span class="ident">usize</span>,
     <span class="ident">peak_threshold</span>: <span class="ident">i32</span>,
 }
 
-<span class="kw">const</span> <span class="ident">TIME_CONSTANT</span>: <span class="ident">f64</span> <span class="op">=</span> <span class="number">0.001</span>;
+<span class="kw">const</span> <span class="ident">TIME_CONSTANT</span>: <span class="ident">f64</span> <span class="op">=</span> <span class="number">0.0001</span>;
 
 <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">sample_to_i32</span>(<span class="ident">sample</span>: <span class="ident">i16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
     (<span class="ident">sample</span> <span class="kw">as</span> <span class="ident">i32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>
 }
 
 <span class="kw">impl</span> <span class="ident">TimecodeChannel</span> {
-    <span class="kw">const</span> <span class="ident">ZERO_CROSSING_THRESHOLD</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">sample_to_i32</span>(<span class="number">128</span>);
-    <span class="kw">const</span> <span class="ident">INITIAL_PEAK_THRESHOLD</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">MAX</span>;
+    <span class="kw">const</span> <span class="ident">INITIAL_PEAK_THRESHOLD</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">0</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">sample_rate_hz</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">ewma</span> <span class="op">=</span> <span class="ident">ExponentialWeightedMovingAverage</span>::<span class="ident">new</span>(<span class="ident">TIME_CONSTANT</span>, <span class="ident">sample_rate_hz</span>);
 
         <span class="kw">let</span> <span class="ident">wave_cycle_status</span> <span class="op">=</span> <span class="ident">WaveCycleStatus</span>::<span class="ident">Positive</span>;
-        <span class="kw">let</span> <span class="ident">samples_since_zero_crossing</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="ident">peak_threshold</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">INITIAL_PEAK_THRESHOLD</span>;
 
         <span class="ident">TimecodeChannel</span> {
             <span class="ident">ewma</span>,
             <span class="ident">wave_cycle_status</span>,
-            <span class="ident">samples_since_zero_crossing</span>,
             <span class="ident">peak_threshold</span>,
         }
     }
 
     <span class="doccomment">/// Returns true if the wave has crossed zero.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_crossed_zero</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sample</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">adjusted_zero_crossing_threshold</span> <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">ewma</span>.<span class="ident">last_output</span> <span class="op">+</span> <span class="self">Self</span>::<span class="ident">ZERO_CROSSING_THRESHOLD</span>;
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">wave_cycle_status</span> {
-            <span class="ident">WaveCycleStatus</span>::<span class="ident">Negative</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sample</span> <span class="op">&gt;</span> <span class="ident">adjusted_zero_crossing_threshold</span>,
-            <span class="ident">WaveCycleStatus</span>::<span class="ident">Positive</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sample</span> <span class="op">&lt;</span> <span class="ident">adjusted_zero_crossing_threshold</span>,
+            <span class="ident">WaveCycleStatus</span>::<span class="ident">Negative</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sample</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">ewma</span>.<span class="ident">last_output</span>,
+            <span class="ident">WaveCycleStatus</span>::<span class="ident">Positive</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sample</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">ewma</span>.<span class="ident">last_output</span>,
         }
     }
 
@@ -326,9 +316,6 @@
                 <span class="ident">WaveCycleStatus</span>::<span class="ident">Negative</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">WaveCycleStatus</span>::<span class="ident">Positive</span>,
                 <span class="ident">WaveCycleStatus</span>::<span class="ident">Positive</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">WaveCycleStatus</span>::<span class="ident">Negative</span>,
             };
-            <span class="self">self</span>.<span class="ident">samples_since_zero_crossing</span> <span class="op">=</span> <span class="number">0</span>;
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">samples_since_zero_crossing</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
 
         <span class="self">self</span>.<span class="ident">ewma</span>.<span class="ident">process</span>(<span class="ident">sample</span>);
@@ -338,14 +325,10 @@
 
     <span class="doccomment">/// Reads a bit from the sample and adjust the threshold.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bit_from_sample</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">sample</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ewma</span>.<span class="ident">difference_to</span>(<span class="ident">sample</span>).<span class="ident">abs</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">peak_threshold</span>;
-        <span class="kw">let</span> <span class="ident">bit</span> <span class="op">=</span> <span class="ident">delta</span> <span class="op">&gt;</span> <span class="number">0</span>;
-
-        <span class="comment">// TODO: The peak threshold is more or less determined by trial and error. This needs to be</span>
-        <span class="comment">// improved by somebody with more DSP knowledge.</span>
-        <span class="self">self</span>.<span class="ident">peak_threshold</span> <span class="op">+</span><span class="op">=</span> <span class="ident">delta</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">6</span>;
-
-        <span class="ident">bit</span>
+        <span class="kw">let</span> <span class="ident">sample</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ewma</span>.<span class="ident">difference_to</span>(<span class="ident">sample</span>).<span class="ident">abs</span>();
+        <span class="self">self</span>.<span class="ident">peak_threshold</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">max</span>(<span class="ident">sample</span>, <span class="self">self</span>.<span class="ident">peak_threshold</span>);
+        <span class="kw">let</span> <span class="ident">threshold</span> <span class="op">=</span> (<span class="ident">f64</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">peak_threshold</span>) <span class="op">*</span> <span class="number">0.9</span>).<span class="ident">trunc</span>() <span class="kw">as</span> <span class="ident">i32</span>;
+        <span class="ident">sample</span> <span class="op">&gt;</span> <span class="ident">threshold</span>
     }
 }
 
@@ -380,6 +363,14 @@
             <span class="ident">direction</span>: <span class="ident">TimecodeDirection</span>::<span class="ident">Forwards</span>,
             <span class="ident">pitch</span>,
         }
+    }
+    <span class="doccomment">/// Returns the current state of the bitstream</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+        <span class="self">self</span>.<span class="ident">bitstream</span>.<span class="ident">state</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">state</span>: <span class="ident">u32</span>) {
+        <span class="self">self</span>.<span class="ident">bitstream</span>.<span class="ident">set_state</span>(<span class="ident">state</span>);
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">process_channels</span>(
@@ -454,12 +445,11 @@
         <span class="comment">// (i.e. per single zero crossing) then calculate:</span>
         <span class="comment">// pitch = 11.025 / number_of_samples_since_previous_zero_crossing</span>
         <span class="kw">if</span> <span class="ident">primary_crossed_zero</span> <span class="op">|</span><span class="op">|</span> <span class="ident">secondary_crossed_zero</span> {
-            <span class="kw">let</span> <span class="ident">pitch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pitch</span>.<span class="ident">update_after_zero_crossing</span>(
+            <span class="self">self</span>.<span class="ident">pitch</span>.<span class="ident">update_after_zero_crossing</span>(
                 <span class="ident">primary_sample</span>,
                 <span class="ident">secondary_sample</span>,
                 <span class="ident">primary_crossed_zero</span>,
             );
-            <span class="macro">dbg</span><span class="macro">!</span>(<span class="ident">pitch</span>);
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">pitch</span>.<span class="ident">update</span>(<span class="ident">primary_sample</span>, <span class="ident">secondary_sample</span>);
         }

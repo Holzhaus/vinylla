@@ -264,6 +264,15 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// vinylla - (c) 2021 Jan Holthuis &lt;holthuis.jan@gmail.com&gt; et al.</span>
 <span class="comment">//</span>
@@ -353,6 +362,15 @@
     <span class="doccomment">/// Returns `true` if the position is considered valid.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">valid_bits</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">size</span>
+    }
+
+    <span class="doccomment">/// Returns the current state of the bitstream</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+        <span class="self">self</span>.<span class="ident">bitstream</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">state</span>: <span class="ident">u32</span>) {
+        <span class="self">self</span>.<span class="ident">bitstream</span> <span class="op">=</span> <span class="ident">state</span>;
     }
 
     <span class="doccomment">/// Retrieve the Position from the current bitstream.</span>
