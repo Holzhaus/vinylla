@@ -196,12 +196,11 @@ impl Timecode {
         // (i.e. per single zero crossing) then calculate:
         // pitch = 11.025 / number_of_samples_since_previous_zero_crossing
         if primary_crossed_zero || secondary_crossed_zero {
-            let pitch = self.pitch.update_after_zero_crossing(
+            self.pitch.update_after_zero_crossing(
                 primary_sample,
                 secondary_sample,
                 primary_crossed_zero,
             );
-            dbg!(pitch);
         } else {
             self.pitch.update(primary_sample, secondary_sample);
         }
