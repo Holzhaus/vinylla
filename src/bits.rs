@@ -28,6 +28,7 @@ pub const fn insert_lsb(size: usize, data: u32, bit: u32) -> u32 {
 }
 
 /// Shift all bits in `size`-bit integer `data` to the left and use the old MSB as new LSB.
+#[allow(dead_code)]
 pub const fn rotate_left(size: usize, data: u32) -> u32 {
     let msb = data >> (size - 1);
     insert_lsb(size, data, msb)

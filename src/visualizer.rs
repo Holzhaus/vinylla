@@ -10,6 +10,7 @@ pub struct Visualizer {
     half_size: usize,
     samples_drawn: usize,
     decay_interval: usize,
+    #[expect(dead_code)]
     decay_factor: f32,
 }
 
