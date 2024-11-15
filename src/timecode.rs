@@ -27,6 +27,9 @@ pub struct TimecodeChannel {
     ewma: ExponentialWeightedMovingAverage,
     wave_cycle_status: WaveCycleStatus,
     peak_threshold: i32,
+    crossed_zero: bool, // made this a permanent item in the struct instead of being allocated as temp value every sample
+    sample: i32, // made this a permanent item in the struct instead of being allocated as temp value every sample
+    threshold: i32, // made this a permanent item in the struct instead of being allocated as temp value every sample
 }
 
 const TIME_CONSTANT: f64 = 0.0001;
@@ -48,6 +51,9 @@ impl TimecodeChannel {
             ewma,
             wave_cycle_status,
             peak_threshold,
+            crossed_zero: false,
+            sample: 0,
+            threshold: 0,
         }
     }
 
@@ -61,8 +67,8 @@ impl TimecodeChannel {
 
     /// Process a sample and detect zero crossing.
     pub fn process_sample(&mut self, sample: i32) -> bool {
-        let crossed_zero = self.has_crossed_zero(sample);
-        if crossed_zero {
+        self.crossed_zero = self.has_crossed_zero(sample);
+        if self.crossed_zero {
             self.wave_cycle_status = match self.wave_cycle_status {
                 WaveCycleStatus::Negative => WaveCycleStatus::Positive,
                 WaveCycleStatus::Positive => WaveCycleStatus::Negative,
@@ -71,15 +77,15 @@ impl TimecodeChannel {
 
         self.ewma.process(sample);
 
-        crossed_zero
+        self.crossed_zero
     }
 
     /// Reads a bit from the sample and adjust the threshold.
     pub fn bit_from_sample(&mut self, sample: i32) -> bool {
-        let sample = self.ewma.difference_to(sample).abs();
+        self.sample = self.ewma.difference_to(sample).abs();
         self.peak_threshold = cmp::max(sample, self.peak_threshold);
-        let threshold = (f64::from(self.peak_threshold) * 0.9).trunc() as i32;
-        sample > threshold
+        self.threshold = (f64::from(self.peak_threshold) * 0.9).trunc() as i32;
+        self.sample > self.threshold
     }
 }
 
@@ -90,6 +96,11 @@ pub struct Timecode {
     secondary_channel: TimecodeChannel,
     direction: TimecodeDirection,
     pitch: PitchDetector,
+    primary_crossed_zero: bool, // made this a permanent item in the struct instead of being allocated as temp value every sample
+    secondary_crossed_zero: bool, // made this a permanent item in the struct instead of being allocated as temp value every sample
+    primary_sample: i32, // made this a permanent item in the struct instead of being allocated as temp value every sample
+    secondary_sample: i32, // made this a permanent item in the struct instead of being allocated as temp value every sample
+    bit: bool, // made this a permanent item in the struct instead of being allocated as temp value every sample
 }
 
 impl Timecode {
@@ -113,6 +124,11 @@ impl Timecode {
             secondary_channel,
             direction: TimecodeDirection::Forwards,
             pitch,
+            primary_crossed_zero: false,
+            secondary_crossed_zero: false,
+            primary_sample: 0,
+            secondary_sample: 0,
+            bit: false,
         }
     }
     /// Returns the current state of the bitstream
@@ -129,10 +145,10 @@ impl Timecode {
         primary_sample: i16,
         secondary_sample: i16,
     ) -> Option<(bool, Option<u32>)> {
-        let primary_sample = sample_to_i32(primary_sample);
-        let secondary_sample = sample_to_i32(secondary_sample);
-        let primary_crossed_zero = self.primary_channel.process_sample(primary_sample);
-        let secondary_crossed_zero = self.secondary_channel.process_sample(secondary_sample);
+        self.primary_sample = sample_to_i32(primary_sample);
+        self.secondary_sample = sample_to_i32(secondary_sample);
+        self.primary_crossed_zero = self.primary_channel.process_sample(self.primary_sample);
+        self.secondary_crossed_zero = self.secondary_channel.process_sample(self.secondary_sample);
 
         // Detect the playback direction of the timecode.
         //
@@ -149,7 +165,7 @@ impl Timecode {
         //  │   │   │   │  (4)  │  wave is positive (4), the timecode is playing
         //  ╰(1)╯   ╰───╯   ╰───╯  forwards, otherwise it's playing backwards.
         //
-        if primary_crossed_zero {
+        if self.primary_crossed_zero {
             self.direction = if self.primary_channel.wave_cycle_status
                 == self.secondary_channel.wave_cycle_status
             {
@@ -157,7 +173,7 @@ impl Timecode {
             } else {
                 TimecodeDirection::Backwards
             }
-        } else if secondary_crossed_zero {
+        } else if self.secondary_crossed_zero {
             self.direction = if self.primary_channel.wave_cycle_status
                 != self.secondary_channel.wave_cycle_status
             {
@@ -195,14 +211,15 @@ impl Timecode {
         // To get faster responses, we can simply count the number of samples per quarter cycle
         // (i.e. per single zero crossing) then calculate:
         // pitch = 11.025 / number_of_samples_since_previous_zero_crossing
-        if primary_crossed_zero || secondary_crossed_zero {
+        if self.primary_crossed_zero || self.secondary_crossed_zero {
             self.pitch.update_after_zero_crossing(
-                primary_sample,
-                secondary_sample,
-                primary_crossed_zero,
+                self.primary_sample,
+                self.secondary_sample,
+                self.primary_crossed_zero,
             );
         } else {
-            self.pitch.update(primary_sample, secondary_sample);
+            self.pitch
+                .update(self.primary_sample, self.secondary_sample);
         }
 
         // Read a bit from the timecode.
@@ -228,16 +245,16 @@ impl Timecode {
         // │   ╰───╯   │   │   │   │
         // ╯           ╰───╯   ╰───╯
         //
-        if secondary_crossed_zero
+        if self.secondary_crossed_zero
             && self.primary_channel.wave_cycle_status == WaveCycleStatus::Positive
         {
-            let bit = self.primary_channel.bit_from_sample(primary_sample);
+            self.bit = self.primary_channel.bit_from_sample(self.primary_sample);
             if self.direction == TimecodeDirection::Forwards {
-                self.bitstream.process_bit(bit as u32);
+                self.bitstream.process_bit(self.bit as u32);
             } else {
-                self.bitstream.process_bit_backward(bit as u32);
+                self.bitstream.process_bit_backward(self.bit as u32);
             }
-            return Some((bit, self.bitstream.position()));
+            return Some((self.bit, self.bitstream.position()));
         }
 
         None
