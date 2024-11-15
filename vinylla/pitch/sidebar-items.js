@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["PitchDetector",""]]});
+window.SIDEBAR_ITEMS = {"struct":["PitchDetector"]};

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["FibonacciLfsr","Fibonacci Linear Feedback Shift Register (LFSR)"]]});
+window.SIDEBAR_ITEMS = {"struct":["FibonacciLfsr"]};

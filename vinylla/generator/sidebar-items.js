@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["TimecodeAudioGenerator",""]]});
+window.SIDEBAR_ITEMS = {"struct":["TimecodeAudioGenerator"]};

@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["TIME_CONSTANT",""]],"enum":[["TimecodeDirection",""],["WaveCycleStatus",""]],"fn":[["sample_to_i32",""]],"struct":[["Timecode",""],["TimecodeChannel",""]]});
+window.SIDEBAR_ITEMS = {"constant":["TIME_CONSTANT"],"enum":["TimecodeDirection","WaveCycleStatus"],"fn":["sample_to_i32"],"struct":["Timecode","TimecodeChannel"]};

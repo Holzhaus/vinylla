@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["SERATO_CONTROL_CD_1_0_0","Serato Control CD 1.0.0"]],"struct":[["TimecodeFormat",""]]});
+window.SIDEBAR_ITEMS = {"constant":["SERATO_CONTROL_CD_1_0_0"],"struct":["TimecodeFormat"]};
