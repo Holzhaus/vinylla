@@ -6,8 +6,8 @@
 
 // FIXME: Enable missing_docs
 //#![deny(missing_docs)]
-#![deny(missing_debug_implementations)]
-#![deny(broken_intra_doc_links)]
+#![warn(missing_debug_implementations)]
+#![warn(rustdoc::broken_intra_doc_links)]
 #![cfg_attr(test, deny(warnings))]
 
 mod bits;
