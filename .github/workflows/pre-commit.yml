@@ -1,37 +1,45 @@
+---
 name: pre-commit
 
 on:
-  push:
-  pull_request:
+    push:
+    pull_request:
+
+permissions: {}
 
 jobs:
-  pre-commit:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
+    pre-commit:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v5
+              with:
+                  persist-credentials: false
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+            - name: Install Rust toolchain
+              run: rustup toolchain install
 
-    - name: Detect code style issues
-      uses: pre-commit/action@v3.0.1
-      env:
-        SKIP: no-commit-to-branch
+            - name: Set up Python
+              uses: actions/setup-python@v6
 
-    - name: Generate patch file
-      if: failure()
-      run: |
-        git diff-index -p HEAD > "${PATCH_FILE}"
-        [ -s "${PATCH_FILE}" ] && echo "UPLOAD_PATCH_FILE=${PATCH_FILE}" >> "${GITHUB_ENV}"
-      env:
-        PATCH_FILE: pre-commit.patch
+            - name: Detect code style issues
+              uses: pre-commit/action@1b06ec171f2f6faa71ed760c4042bd969e4f8b43
+              env:
+                  SKIP: no-commit-to-branch
 
-    - name: Upload patch artifact
-      if: failure() && env.UPLOAD_PATCH_FILE != null
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ env.UPLOAD_PATCH_FILE }}
-        path: ${{ env.UPLOAD_PATCH_FILE }}
+            - name: Generate patch file
+              if: failure()
+              run: |
+                  git diff-index -p HEAD > "${PATCH_FILE}"
+                  [ -s "${PATCH_FILE}" ] && echo "UPLOAD_PATCH_FILE=${PATCH_FILE}" >> "${GITHUB_ENV}"
+              env:
+                  PATCH_FILE: pre-commit.patch
+
+            - name: Upload patch artifact
+              if: failure() && env.UPLOAD_PATCH_FILE != null
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ env.UPLOAD_PATCH_FILE }}
+                  path: ${{ env.UPLOAD_PATCH_FILE }}

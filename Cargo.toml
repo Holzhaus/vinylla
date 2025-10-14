@@ -17,5 +17,5 @@ documentation = "https://docs.rs/vinylla/"
 [dependencies]
 
 [dev-dependencies]
-hound = "3.4"
-sdl2 = "0.37"
+hound = "3.5"
+sdl2 = "0.38"

@@ -1,13 +1,15 @@
-// vinylla - (c) 2021 Jan Holthuis <holthuis.jan@gmail.com> et al.
+// Copyright (c) 2025 Jan Holthuis <holthuis.jan@gmail.com> et al.
 //
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy
+// of the MPL was not distributed with this file, You can obtain one at
+// http://mozilla.org/MPL/2.0/.
+//
+// SPDX-License-Identifier: MPL-2.0
 
 // FIXME: Enable missing_docs
 //#![deny(missing_docs)]
-#![deny(missing_debug_implementations)]
-#![deny(broken_intra_doc_links)]
+#![warn(missing_debug_implementations)]
+#![warn(rustdoc::broken_intra_doc_links)]
 #![cfg_attr(test, deny(warnings))]
 
 mod bits;
