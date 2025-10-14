@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Implementation of a Fibonacci Linear Feedback Shift Register (LFSR)."><title>vinylla::lfsr - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="vinylla" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../vinylla/index.html">vinylla</a><span class="version">0.0.0</span></h2></div><h2 class="location"><a href="#">Module lfsr</a></h2><div class="sidebar-elems"><section><ul class="block"><li><a href="#structs">Structs</a></li></ul></section><h2><a href="../index.html">In crate vinylla</a></h2></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Module <a href="../index.html">vinylla</a>::<wbr><a class="mod" href="#">lfsr</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../../src/vinylla/lfsr.rs.html#7-325">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Implementation of a Fibonacci Linear Feedback Shift Register (LFSR).</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Implementation of a Fibonacci Linear Feedback Shift Register (LFSR)."><title>vinylla::lfsr - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="vinylla" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../vinylla/index.html">vinylla</a><span class="version">0.0.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module lfsr</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#description" title="Description">Description</a></li><li><a href="#example" title="Example">Example</a><ul><li><a href="#feedback-polynomial" title="Feedback Polynomial">Feedback Polynomial</a></li></ul></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate vinylla</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">vinylla</a></div><h1>Module <span>lfsr</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/vinylla/lfsr.rs.html#9-327">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Implementation of a Fibonacci Linear Feedback Shift Register (LFSR).</p>
 <p>An n-bit LFSR generates a bitstream from an n-bit state. For each cycle, the bits at certain
 positions of the current state are XOR’ed and the result is fed back into the register. The
 rightmost bit of the state that is “pushed out” of the register is the output bit.</p>
@@ -18,17 +18,14 @@ x ∈ ℕ: pₓ ∈ {0, 1}).</p>
 │sₐ        ⊗ ◀─pₐ₋₁        ⊗ ◀─p₃ ⊗ ◀─p₂ ⊗ ◀─p₁ ⊗ ◀─p₀
 │          │               │      │      │      │
 │          ▼               ▼      ▼      ▼      │
-└─────────╴⊕ ◀─ ... ◀──────⊕ ◀────⊕ ◀────⊕ ◀────┘
-</code></pre></div>
+└─────────╴⊕ ◀─ ... ◀──────⊕ ◀────⊕ ◀────⊕ ◀────┘</code></pre></div>
 <p>The LFSR state is a-bit vector s = (sₐ₋₁, …, s₃, s₂, s₁, s₀).</p>
 <p>After the first clock cycle, the internal state is shifted, such that s = (sₐ, …, s₄, s₃, s₂,
 s₁) and s₀ becomes the output bit. The feedback bit can be calculated as:</p>
-<div class="example-wrap"><pre class="language-text"><code>sₐ ≡ pₐ₋₁ × sₐ₋₁ + ... + p₃ × s₃ + p₂ × s₂ + p₁ × s₁ + p₁ × s₁ + p₀ × s₀ mod 2
-</code></pre></div>
+<div class="example-wrap"><pre class="language-text"><code>sₐ ≡ pₐ₋₁ × sₐ₋₁ + ... + p₃ × s₃ + p₂ × s₂ + p₁ × s₁ + p₁ × s₁ + p₀ × s₀ mod 2</code></pre></div>
 <p>It’s important that the taps <code>p</code> are a property of the LFSR. That property doesn’t change, so
 the next feedback bit is calculated like this:</p>
-<div class="example-wrap"><pre class="language-text"><code>sₐ₊₁ ≡ pₐ₋₁ × sₐ + ... + p₃ × s₄ + p₂ × s₃ + p₁ × s₂ + p₁ × s₂ + p₀ × s₁ mod 2
-</code></pre></div><h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="language-text"><code>sₐ₊₁ ≡ pₐ₋₁ × sₐ + ... + p₃ × s₄ + p₂ × s₃ + p₁ × s₂ + p₁ × s₂ + p₀ × s₁ mod 2</code></pre></div><h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
 <p>Let’s consider an 8-bit LFSR with taps p = (0, 0, 0, 1, 1, 1, 0, 1). This information
 suffices to draw it as:</p>
 <div class="example-wrap"><pre class="language-text"><code>     MSB                                              LSB
@@ -37,14 +34,12 @@ suffices to draw it as:</p>
 │   └───┘  └───┘  └───┘  └───┘│ └───┘│ └───┘│ └───┘  └───┘│
 │s₈                           │      │      │             │
 │                             ▼      ▼      ▼             │
-└─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘
-</code></pre></div>
+└─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘</code></pre></div>
 <p>We can now calculate the output bit as:</p>
 <div class="example-wrap"><pre class="language-text"><code>s₈ ≡ p₇ × s₇ + p₆ × s₆ + p₅ × s₅ + p₄ × s₄ + p₃ × s₃ + p₂ × s₂ + p₁ × s₁ + p₀ × s₀ mod 2
    ≡  0 × s₇ +  0 × s₆ +  0 × s₅ +  1 × s₄ +  1 × s₃ + 1  × s₂ +  0 × s₁ +  1 × s₀ mod 2
    ≡                                    s₄ +      s₃ +      s₂           +      s₀ mod 2
-   ≡ s₄ ⊕ s₃ ⊕ s₂ ⊕  s₀
-</code></pre></div>
+   ≡ s₄ ⊕ s₃ ⊕ s₂ ⊕  s₀</code></pre></div>
 <p>Let the initial state s = (1, 1, 0, 0, 1, 0, 0, 1).</p>
 <div class="example-wrap"><pre class="language-text"><code>     MSB                                              LSB
       s₇     s₆     s₅     s₄     s₃     s₂     s₁     s₀
@@ -53,14 +48,12 @@ suffices to draw it as:</p>
 │   └───┘  └───┘  └───┘  └───┘│ └───┘│ └───┘│ └───┘  └───┘│
 │s₈                           │      │      │             │
 │                             ▼      ▼      ▼             │
-└─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘
-</code></pre></div>
+└─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘</code></pre></div>
 <p>The first clock cycle now shifts the register to the right using feedback bit s₈.
 That bit can be calculated using the equation above:</p>
 <div class="example-wrap"><pre class="language-text"><code>s₈ ≡ s₄ ⊕ s₃ ⊕ s₂ ⊕  s₀
    ≡ 0 ⊕ 1 ⊕ 0 ⊕  1
-   ≡ 0
-</code></pre></div>
+   ≡ 0</code></pre></div>
 <p>The output bit is the bit that gets “pushed out” of the register, i.e. s₀ = 0.</p>
 <p>After the first clock the LFSR has state s = (0, 1, 1, 0, 0, 1, 0, 0) and looks like this:</p>
 <div class="example-wrap"><pre class="language-text"><code>     MSB                                              LSB
@@ -70,13 +63,11 @@ That bit can be calculated using the equation above:</p>
 │   └───┘  └───┘  └───┘  └───┘│ └───┘│ └───┘│ └───┘  └───┘│
 │s₉                           │      │      │             │
 │                             ▼      ▼      ▼             │
-└─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘
-</code></pre></div>
+└─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘</code></pre></div>
 <p>For the second clock cycle, the output bit is s₁ = 0 and we can calculate the feedback bit s₉ as:</p>
 <div class="example-wrap"><pre class="language-text"><code>s₉ ≡ s₅ ⊕ s₄ ⊕ s₃ ⊕  s₁
    ≡ 0 ⊕ 0 ⊕ 1 ⊕  0
-   ≡ 1
-</code></pre></div>
+   ≡ 1</code></pre></div>
 <p>After the second clock the LFSR has state s = (1, 0, 1, 1, 0, 0, 1, 0) and looks like this:</p>
 <div class="example-wrap"><pre class="language-text"><code>     MSB                                              LSB
       s₉     s₈     s₇     s₆     s₅     s₄     s₃     s₂
@@ -85,19 +76,15 @@ That bit can be calculated using the equation above:</p>
 │   └───┘  └───┘  └───┘  └───┘│ └───┘│ └───┘│ └───┘  └───┘│
 │s₁₀                          │      │      │             │
 │                             ▼      ▼      ▼             │
-└─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘
-</code></pre></div><h3 id="feedback-polynomial"><a class="doc-anchor" href="#feedback-polynomial">§</a>Feedback Polynomial</h3>
+└─────────────────────────────⊕ ◀────⊕ ◀────⊕ ◀───────────┘</code></pre></div><h3 id="feedback-polynomial"><a class="doc-anchor" href="#feedback-polynomial">§</a>Feedback Polynomial</h3>
 <p>Mathematicians love polynomials, so instead of using the size and the taps to describe an LFSR,
 they often use a polynomial:</p>
-<div class="example-wrap"><pre class="language-text"><code>P(x) = p₀ × xᵃ + p₁ × xᵃ⁻¹ + p₂ × xᵃ⁻² + ... + pₐ₋₁  × x¹ + x⁰
-</code></pre></div>
+<div class="example-wrap"><pre class="language-text"><code>P(x) = p₀ × xᵃ + p₁ × xᵃ⁻¹ + p₂ × xᵃ⁻² + ... + pₐ₋₁  × x¹ + x⁰</code></pre></div>
 <p>So for the 8-bit LFSR in the example, we had these taps:</p>
 <div class="example-wrap"><pre class="language-text"><code>p = (p₇, p₆, p₅, p₄, p₃, p₂, p₁, p₀)
-  = (0,  0,  0,  1,  1,  1,  0,  1)
-</code></pre></div>
+  = (0,  0,  0,  1,  1,  1,  0,  1)</code></pre></div>
 <p>Therefore, the feedback polynomial of that LFSR is:</p>
 <div class="example-wrap"><pre class="language-text"><code>P(x) = p₀ × x⁸ + p₁ × x⁷ + p₂ × x⁶ + p₃ × x⁵ + p₄ × x⁴ + p₅ × x³ + p₆ × x² + p₇ × x¹ + x⁰
      =  1 × x⁸ +  0 × x⁷ +  1 × x⁶ +  1 × x⁵ +  1 × x⁴ +  0 × x³ +  0 × x² +  0 × x¹ + x⁰
      =      x⁸ +                x⁶ +      x⁵ +      x⁴ +                               x⁰
-     = x⁸ + x⁶ + x⁵ + x⁴ + 1
-</code></pre></div></div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.FibonacciLfsr.html" title="struct vinylla::lfsr::FibonacciLfsr">Fibonacci<wbr>Lfsr</a></div><div class="desc docblock-short">Fibonacci Linear Feedback Shift Register (LFSR)</div></li></ul></section></div></main></body></html>
+     = x⁸ + x⁶ + x⁵ + x⁴ + 1</code></pre></div></div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.FibonacciLfsr.html" title="struct vinylla::lfsr::FibonacciLfsr">Fibonacci<wbr>Lfsr</a></dt><dd>Fibonacci Linear Feedback Shift Register (LFSR)</dd></dl></section></div></main></body></html>
