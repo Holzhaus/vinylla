@@ -35,6 +35,7 @@ impl Bitstream {
         };
         let mut lookup_table = HashMap::with_capacity(capacity as usize);
         for i in 0..capacity {
+            debug_assert!(!lookup_table.contains_key(&lfsr.state));
             lookup_table.insert(lfsr.state, i);
             lfsr.advance();
         }
